@@ -19,6 +19,26 @@ services:
       retries: 5
       start_period: 10s
 
+  # API cho map-tour — đọc dữ liệu từ Postgres, kết nối qua network Docker
+  # nội bộ (không cần publish port 5432 ra ngoài cho service này).
+  api:
+    build: ./map-tour/server
+    container_name: lang-uoc-le-db-api
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      API_PORT: 8787
+      CORS_ORIGIN: ${API_CORS_ORIGIN:-http://localhost:5173}
+    ports:
+      - '${API_PORT:-8787}:8787'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   # Giao diện quản trị DB nhẹ, KHÔNG chạy mặc định.
   # Bật khi cần: docker compose --profile tools up -d
   adminer:
