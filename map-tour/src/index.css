@@ -178,10 +178,63 @@ body {
   flex: 1;
 }
 
+.app__route-loading {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: var(--color-on-surface-variant);
+}
+
+@media (max-width: 768px) {
+  .map-page {
+    flex-direction: column;
+  }
+
+  .app__sidebar {
+    width: 100%;
+    flex: 0 0 auto;
+    max-height: 40vh;
+    border-right: none;
+    border-bottom: 1px solid var(--color-outline-variant);
+  }
+
+  .app__map {
+    min-height: 50vh;
+  }
+}
+
 .site-list {
+  padding: 0.3rem 0 0.6rem;
+}
+
+.site-list__group + .site-list__group {
+  margin-top: 0.3rem;
+}
+
+.site-list__group-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0.65rem 1rem 0.3rem;
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+  color: var(--color-on-surface);
+}
+
+.site-list__group-title::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 4px;
+  height: 1em;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+}
+
+.site-list__group-items {
   list-style: none;
   margin: 0;
-  padding: 0.4rem;
+  padding: 0 0.4rem;
 }
 
 .site-list__row {
@@ -192,101 +245,220 @@ body {
   border-bottom: none;
 }
 
+.site-list__row-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  margin: 0.1rem 0;
+  border-radius: var(--radius-md);
+  transition: background-color 0.2s ease;
+}
+
+.site-list__row-inner:hover {
+  background: var(--color-surface-container-high);
+}
+
+.site-list__row-inner--active {
+  background: var(--color-primary-container);
+}
+
+.site-list__row-inner--active:hover {
+  background: var(--color-primary);
+}
+
 .site-list__item {
-  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.3rem;
-  padding: 0.65rem 0.7rem;
-  margin: 0.15rem 0;
+  gap: 0.2rem;
+  padding: 0;
   border: none;
-  border-radius: var(--radius-md);
   background: transparent;
   text-align: left;
   cursor: pointer;
   font-family: inherit;
-  transition: background-color 0.2s ease;
-}
-
-.site-list__item:hover {
-  background: var(--color-surface-container-high);
-}
-
-.site-list__item--active {
-  background: var(--color-primary-container);
-}
-
-.site-list__item--active .site-list__name,
-.site-list__item--active .site-list__category {
-  color: var(--color-on-primary);
 }
 
 .site-list__name {
   font-family: var(--font-serif);
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: var(--color-on-surface);
 }
 
 .site-list__meta {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.site-list__badge {
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  padding: 0.1rem 0.45rem;
-  border-radius: var(--radius-full);
-  color: var(--color-on-primary);
-  white-space: nowrap;
-}
-
-.site-list__badge--point {
-  background: var(--color-primary);
-}
-
-.site-list__badge--area {
-  background: var(--color-tertiary);
-}
-
-.site-list__category {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--color-on-surface-variant);
 }
 
-.tour-marker--active svg {
-  filter: drop-shadow(0 0 5px #fcd400) brightness(1.1);
+.site-list__row-inner--active .site-list__name {
+  color: var(--color-on-primary);
+}
+
+.site-list__row-inner--active .site-list__meta {
+  color: var(--color-on-primary);
+  opacity: 0.85;
+}
+
+/* Custom MapLibre marker: a fixed 32x32 icon badge (per-category color/icon,
+   from src/lib/siteCategories.ts) plus a name label offset to the side, so
+   the label never sits on top of the icon or of a neighboring pin. The root
+   element's box stays a fixed 32x32 so MapLibre's center-anchor math ignores
+   the label's overflow.
+   Deliberately no `position` here: MapLibre's own .maplibregl-marker class
+   already sets `position: absolute` on this same element (required so each
+   marker is positioned purely by its transform, independent of DOM order).
+   Setting `position: relative` here previously won the cascade (this
+   stylesheet loads after maplibre-gl.css) and put markers back in normal
+   flow, so each one also stacked by the previous markers' heights on top of
+   its transform — a per-marker offset that compounded with marker count and
+   only became obvious once zoomed in close. `position: absolute` already
+   establishes a containing block for the absolutely-positioned label below,
+   so nothing here needs to set position at all. */
+.tour-marker {
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
+
+.tour-marker__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--tour-marker-color, var(--color-primary));
+  border: 2px solid var(--color-surface-container-lowest);
+  box-shadow: 0 2px 6px rgba(54, 15, 0, 0.35);
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.tour-marker__badge svg {
+  width: 16px;
+  height: 16px;
+}
+
+.tour-marker__label {
+  position: absolute;
+  left: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  background: var(--color-surface-container-lowest);
+  border: 1.5px solid var(--tour-marker-color, var(--color-primary));
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 0.74rem;
+  line-height: 1.3;
+  color: var(--color-on-surface);
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(54, 15, 0, 0.18);
+  pointer-events: none;
+}
+
+.tour-marker:focus-visible .tour-marker__badge {
+  outline: 2px solid var(--color-secondary-container);
+  outline-offset: 2px;
+}
+
+.tour-marker--active .tour-marker__badge {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px var(--color-secondary-container), 0 2px 6px rgba(54, 15, 0, 0.35);
+}
+
+.tour-marker--active .tour-marker__label {
+  border-width: 2px;
+  font-weight: 700;
+}
+
+/* Below MARKER_LABEL_MIN_ZOOM (TourMap.tsx) a shrunk-on-screen area polygon
+   can be smaller than the badge itself, so the label is dropped and the
+   badge shrinks to a small dot — keeping the marker proportionate to the
+   zoomed-out geometry instead of visually overwhelming it. Both the wrapper
+   and the badge shrink together so the anchor point (the wrapper's own box,
+   used by MapLibre's center-anchor transform) stays exactly aligned with
+   the badge's visual center. */
+.tour-marker--compact {
+  width: 18px;
+  height: 18px;
+}
+
+.tour-marker--compact .tour-marker__badge {
+  width: 18px;
+  height: 18px;
+  border-width: 1.5px;
+}
+
+.tour-marker--compact .tour-marker__badge svg {
+  width: 10px;
+  height: 10px;
+}
+
+.tour-marker--compact .tour-marker__label {
+  display: none;
+}
+
+/* Set by TourMap's resolveLabelCollisions when this marker's label would
+   overlap a higher-priority marker's label/badge at the current zoom — the
+   icon stays in its exact, correct position, only the label is suppressed. */
+.tour-marker--label-hidden .tour-marker__label {
+  display: none;
 }
 
 .site-list__panorama-btn {
-  align-self: flex-start;
-  margin: 0 0.7rem 0.6rem;
-  padding: 0.2rem 0.65rem;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.3rem 0.6rem;
   font-size: 0.72rem;
   font-weight: 600;
   font-family: inherit;
-  color: var(--color-on-secondary-container);
-  background: var(--color-secondary-container);
-  border: none;
+  color: var(--color-primary);
+  background: transparent;
+  border: 1.5px solid var(--color-primary-container);
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: opacity 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .site-list__panorama-btn:hover {
-  opacity: 0.85;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+}
+
+.site-list__row-inner--active .site-list__panorama-btn {
+  border-color: var(--color-on-primary);
+  color: var(--color-on-primary);
+}
+
+.site-list__row-inner--active .site-list__panorama-btn:hover {
+  background: var(--color-on-primary);
+  color: var(--color-primary);
+}
+
+.site-list__panorama-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* Rendered inside MapLibre's popup HTML (outside the React tree), so this
    is a plain global class rather than something scoped to a component. */
 .popup-panorama-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
   margin-top: 0.5rem;
-  padding: 0.25rem 0.7rem;
+  padding: 0.4rem 0.9rem;
   font-size: 0.75rem;
   font-weight: 600;
   font-family: var(--font-sans);
@@ -299,6 +471,11 @@ body {
 
 .popup-panorama-btn:hover {
   opacity: 0.85;
+}
+
+.popup-panorama-btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .map-popup {
@@ -359,7 +536,7 @@ body {
 .panorama-modal__backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(54, 15, 0, 0.72);
+  background: rgba(0, 0, 0, 0.72);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -369,7 +546,7 @@ body {
 .panorama-modal__content {
   width: 80vw;
   height: 80vh;
-  background: #111;
+  background: transparent;
   border-radius: var(--radius-lg);
   overflow: hidden;
   display: flex;

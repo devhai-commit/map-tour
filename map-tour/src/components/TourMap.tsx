@@ -11,6 +11,8 @@ import {
 import { Protocol } from 'pmtiles';
 import type { StyleSpecification } from 'maplibre-gl';
 import osmBrightStyle from '../assets/map/osm-bright-style.json';
+import { MAP_COLORS } from '../lib/mapColors';
+import { getCategoryStyle } from '../lib/siteCategories';
 import { siteCenter } from '../types';
 import type { AreaSite, LatLng, PointSite, TourSite } from '../types';
 
@@ -21,12 +23,23 @@ const PMTILES_SOURCE_ID = 'openmaptiles';
 const AREA_SOURCE_ID = 'tour-areas';
 const AREA_FILL_LAYER_ID = 'tour-areas-fill';
 const AREA_LINE_LAYER_ID = 'tour-areas-line';
-const POINT_LABEL_SOURCE_ID = 'tour-point-labels';
-const POINT_LABEL_LAYER_ID = 'tour-point-labels';
-const AREA_LABEL_SOURCE_ID = 'tour-area-labels';
-const AREA_LABEL_LAYER_ID = 'tour-area-labels';
 const ROUTE_SOURCE_ID = 'tour-route';
 const ROUTE_LINE_LAYER_ID = 'tour-route-line';
+
+// Icon badges and their label pills are a fixed screen-pixel size, so below
+// this zoom a small area polygon can shrink to fewer screen-pixels than the
+// badge itself, making the marker look like it "spills outside" the shape it
+// marks even though its lat/lng anchor is exactly correct. Collapsing to an
+// icon-only dot below this threshold keeps the marker visually proportionate
+// to the shrunk geometry instead of looking misplaced.
+const MARKER_LABEL_MIN_ZOOM = 16;
+
+// Must match the non-compact .tour-marker/.tour-marker__badge box (32px) and
+// the .tour-marker__label left offset (40px) in index.css — used to compute
+// each marker's on-screen bounding box for collision detection below.
+const MARKER_BADGE_SIZE = 32;
+const MARKER_LABEL_LEFT_OFFSET = 40;
+const MARKER_LABEL_GAP = 6;
 
 // Ordered walking-tour stops — only the curated Ước Lễ sites (not the seeded
 // random demo entries in sites.ts) get a real road/path route drawn between
@@ -103,15 +116,103 @@ function areasToFeatureCollection(areaSites: AreaSite[]): GeoJSON.FeatureCollect
   };
 }
 
-function labelFeatureCollection(entries: Array<{ id: string; name: string; center: LatLng }>): GeoJSON.FeatureCollection {
+// Marker label sits beside the icon badge (not stacked above it), so nearby
+// markers never have their name text covered by a neighboring pin. The
+// wrapper element keeps a fixed 32x32 box (matching the badge) so MapLibre's
+// center-anchor math stays exact even though the label overflows it visually.
+function createMarkerElement(site: TourSite, onSelect: (id: string) => void): HTMLDivElement {
+  const style = getCategoryStyle(site.category);
+  const element = document.createElement('div');
+  element.className = 'tour-marker';
+  element.style.setProperty('--tour-marker-color', style.color);
+  element.innerHTML = `
+    <span class="tour-marker__badge">${style.icon}</span>
+    <span class="tour-marker__label">${escapeHtml(site.name)}</span>
+  `;
+  element.setAttribute('role', 'button');
+  element.setAttribute('tabindex', '0');
+  element.setAttribute('aria-label', site.name);
+  element.addEventListener('click', () => onSelect(site.id));
+  element.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    onSelect(site.id);
+  });
+  return element;
+}
+
+// Label width/height only depend on the site's name and the (static) marker
+// CSS, so they're measured once right after the marker is added to the DOM
+// and reused on every collision pass — reading offsetWidth/offsetHeight on
+// every map "move" event would otherwise force a layout reflow per marker.
+function cacheLabelSize(marker: Marker, siteId: string, labelSizes: Record<string, { width: number; height: number }>) {
+  const labelElement = marker.getElement().querySelector<HTMLElement>('.tour-marker__label');
+  if (!labelElement) return;
+  labelSizes[siteId] = { width: labelElement.offsetWidth, height: labelElement.offsetHeight };
+}
+
+interface MarkerBox {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+function badgeBox(centerX: number, centerY: number): MarkerBox {
+  const half = MARKER_BADGE_SIZE / 2;
+  return { left: centerX - half, right: centerX + half, top: centerY - half, bottom: centerY + half };
+}
+
+function labelBox(centerX: number, centerY: number, size: { width: number; height: number }): MarkerBox {
+  const badge = badgeBox(centerX, centerY);
+  const left = centerX - MARKER_BADGE_SIZE / 2 + MARKER_LABEL_LEFT_OFFSET;
   return {
-    type: 'FeatureCollection',
-    features: entries.map(({ id, name, center }) => ({
-      type: 'Feature',
-      properties: { id, name },
-      geometry: { type: 'Point', coordinates: toLngLat(center) },
-    })),
+    left: badge.left,
+    right: left + size.width,
+    top: Math.min(badge.top, centerY - size.height / 2),
+    bottom: Math.max(badge.bottom, centerY + size.height / 2),
   };
+}
+
+function boxesOverlap(a: MarkerBox, b: MarkerBox): boolean {
+  return (
+    a.left - MARKER_LABEL_GAP < b.right &&
+    a.right + MARKER_LABEL_GAP > b.left &&
+    a.top - MARKER_LABEL_GAP < b.bottom &&
+    a.bottom + MARKER_LABEL_GAP > b.top
+  );
+}
+
+// DOM markers don't get MapLibre's native symbol-layer collision detection
+// (that only applies between GL-rendered symbol layers), so two independent
+// markers whose real-world positions are close together can end up with
+// overlapping label pills at some zoom levels even though each marker's own
+// icon+label pair is correctly laid out. This greedily hides the label of
+// any lower-priority marker that would overlap an already-placed one —
+// priority is "currently selected first, then original site order".
+function resolveLabelCollisions(
+  map: MapLibreMap,
+  markers: Record<string, Marker>,
+  orderedSiteIds: string[],
+  labelSizes: Record<string, { width: number; height: number }>,
+  selectedId: string | null,
+) {
+  const prioritized = [...orderedSiteIds].sort((a, b) => {
+    if (a === selectedId) return -1;
+    if (b === selectedId) return 1;
+    return 0;
+  });
+  const placedBoxes: MarkerBox[] = [];
+  for (const siteId of prioritized) {
+    const marker = markers[siteId];
+    const size = labelSizes[siteId];
+    if (!marker || !size) continue;
+    const point = map.project(marker.getLngLat());
+    const candidate = labelBox(point.x, point.y, size);
+    const hidden = placedBoxes.some((box) => boxesOverlap(candidate, box));
+    marker.getElement().classList.toggle('tour-marker--label-hidden', hidden);
+    placedBoxes.push(hidden ? badgeBox(point.x, point.y) : candidate);
+  }
 }
 
 function siteBounds(sites: TourSite[]): LngLatBounds | null {
@@ -152,6 +253,7 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama }: TourMap
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Record<string, Marker>>({});
+  const selectedIdRef = useRef<string | null>(selectedId);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -194,15 +296,20 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama }: TourMap
 
     const pointSites = sites.filter((site): site is PointSite => site.kind === 'point');
     const areaSites = sites.filter((site): site is AreaSite => site.kind === 'area');
+    // Points before areas, matching creation order below — the order this
+    // array is built in is also the tie-break priority used by
+    // updateLabelCollisions when two markers' labels would overlap.
+    const orderedSiteIds = [...pointSites, ...areaSites].map((site) => site.id);
+    const labelSizes: Record<string, { width: number; height: number }> = {};
 
     map.on('load', () => {
       for (const site of pointSites) {
-        const marker = new Marker({ color: '#610000' })
+        const marker = new Marker({ element: createMarkerElement(site, onSelect) })
           .setLngLat(toLngLat(site.position))
           .setPopup(new Popup({ offset: 24 }).setHTML(popupHtml(site)))
           .addTo(map);
-        marker.getElement().addEventListener('click', () => onSelect(site.id));
         markersRef.current[site.id] = marker;
+        cacheLabelSize(marker, site.id, labelSizes);
       }
 
       map.addSource(AREA_SOURCE_ID, {
@@ -213,13 +320,13 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama }: TourMap
         id: AREA_FILL_LAYER_ID,
         type: 'fill',
         source: AREA_SOURCE_ID,
-        paint: { 'fill-color': '#fcd400', 'fill-opacity': 0.28 },
+        paint: { 'fill-color': MAP_COLORS.secondaryContainer, 'fill-opacity': 0.28 },
       });
       map.addLayer({
         id: AREA_LINE_LAYER_ID,
         type: 'line',
         source: AREA_SOURCE_ID,
-        paint: { 'line-color': '#610000', 'line-width': 2 },
+        paint: { 'line-color': MAP_COLORS.primary, 'line-width': 2 },
       });
 
       map.on('click', AREA_FILL_LAYER_ID, (event: MapLayerMouseEvent) => {
@@ -239,52 +346,26 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama }: TourMap
         map.getCanvas().style.cursor = '';
       });
 
-      // Persistent name labels for every site (point markers get a label
-      // above the pin; area polygons get one centered on their centroid).
-      map.addSource(POINT_LABEL_SOURCE_ID, {
-        type: 'geojson',
-        data: labelFeatureCollection(pointSites.map((site) => ({ id: site.id, name: site.name, center: site.position }))),
-      });
-      map.addLayer({
-        id: POINT_LABEL_LAYER_ID,
-        type: 'symbol',
-        source: POINT_LABEL_SOURCE_ID,
-        layout: {
-          'text-field': ['get', 'name'],
-          'text-font': ['Noto Sans Regular'],
-          'text-size': 12,
-          'text-anchor': 'bottom',
-          'text-offset': [0, -1.7],
-          'text-optional': true,
-        },
-        paint: {
-          'text-color': '#360f00',
-          'text-halo-color': '#fff8f6',
-          'text-halo-width': 1.4,
-        },
-      });
+      // Area polygons get the same icon+label marker as points, centered on
+      // their centroid, so every category reads consistently on the map.
+      for (const site of areaSites) {
+        const marker = new Marker({ element: createMarkerElement(site, onSelect) })
+          .setLngLat(toLngLat(siteCenter(site)))
+          .setPopup(new Popup({ offset: 24 }).setHTML(popupHtml(site)))
+          .addTo(map);
+        markersRef.current[site.id] = marker;
+        cacheLabelSize(marker, site.id, labelSizes);
+      }
 
-      map.addSource(AREA_LABEL_SOURCE_ID, {
-        type: 'geojson',
-        data: labelFeatureCollection(areaSites.map((site) => ({ id: site.id, name: site.name, center: siteCenter(site) }))),
-      });
-      map.addLayer({
-        id: AREA_LABEL_LAYER_ID,
-        type: 'symbol',
-        source: AREA_LABEL_SOURCE_ID,
-        layout: {
-          'text-field': ['get', 'name'],
-          'text-font': ['Noto Sans Bold'],
-          'text-size': 13,
-          'text-anchor': 'center',
-          'text-optional': true,
-        },
-        paint: {
-          'text-color': '#610000',
-          'text-halo-color': '#fff8f6',
-          'text-halo-width': 1.6,
-        },
-      });
+      const updateMarkers = () => {
+        const compact = map.getZoom() < MARKER_LABEL_MIN_ZOOM;
+        for (const marker of Object.values(markersRef.current)) {
+          marker.getElement().classList.toggle('tour-marker--compact', compact);
+        }
+        if (!compact) resolveLabelCollisions(map, markersRef.current, orderedSiteIds, labelSizes, selectedIdRef.current);
+      };
+      updateMarkers();
+      map.on('move', updateMarkers);
 
       const bounds = siteBounds(sites);
       if (bounds) map.fitBounds(bounds, { padding: 48, duration: 0 });
@@ -303,21 +384,18 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama }: TourMap
             data: routeFeature,
             attribution: 'Routing: <a href="https://routing.openstreetmap.de/">FOSSGIS OSRM</a>',
           });
-          map.addLayer(
-            {
-              id: ROUTE_LINE_LAYER_ID,
-              type: 'line',
-              source: ROUTE_SOURCE_ID,
-              layout: { 'line-cap': 'round', 'line-join': 'round' },
-              paint: {
-                'line-color': '#354910',
-                'line-width': 4,
-                'line-opacity': 0.85,
-                'line-dasharray': [0.2, 1.5],
-              },
+          map.addLayer({
+            id: ROUTE_LINE_LAYER_ID,
+            type: 'line',
+            source: ROUTE_SOURCE_ID,
+            layout: { 'line-cap': 'round', 'line-join': 'round' },
+            paint: {
+              'line-color': MAP_COLORS.tertiaryContainer,
+              'line-width': 4,
+              'line-opacity': 0.85,
+              'line-dasharray': [0.2, 1.5],
             },
-            POINT_LABEL_LAYER_ID,
-          );
+          });
         });
       }
     });
@@ -334,6 +412,7 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama }: TourMap
   }, []);
 
   useEffect(() => {
+    selectedIdRef.current = selectedId;
     const map = mapRef.current;
     if (!map) return;
 
@@ -349,6 +428,11 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama }: TourMap
         2,
       ]);
     }
+
+    // Re-run the same collision pass registered on the map's "move" event so
+    // selecting a site immediately gives its label priority, instead of
+    // waiting for the next pan/zoom to re-resolve overlaps.
+    map.fire('move');
   }, [selectedId]);
 
   return <div ref={containerRef} style={{ height: '100%', width: '100%' }} />;

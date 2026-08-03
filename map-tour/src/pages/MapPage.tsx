@@ -19,14 +19,22 @@ export function MapPage() {
           <p>Di tích &amp; khu vực di sản trong làng</p>
         </div>
         <div className="app__sidebar-list">
-          {isLoading && <p className="app__sidebar-status">Đang tải dữ liệu...</p>}
-          {error && <p className="app__sidebar-status app__sidebar-status--error">{error}</p>}
+          {isLoading && (
+            <p className="app__sidebar-status" role="status">
+              Đang tải dữ liệu...
+            </p>
+          )}
+          {error && (
+            <p className="app__sidebar-status app__sidebar-status--error" role="alert">
+              {error}
+            </p>
+          )}
           <SiteList sites={sites} selectedId={selectedId} onSelect={setSelectedId} onOpenPanorama={openPanorama} />
         </div>
       </aside>
-      <main className="app__map">
+      <div className="app__map">
         <TourMap sites={sites} selectedId={selectedId} onSelect={setSelectedId} onOpenPanorama={openPanorama} />
-      </main>
+      </div>
     </div>
   );
 }

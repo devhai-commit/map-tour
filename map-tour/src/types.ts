@@ -32,9 +32,32 @@ export type TourSite = PointSite | AreaSite;
 
 export function siteCenter(site: TourSite): LatLng {
   if (site.kind === 'point') return site.position;
-  const [latSum, lngSum] = site.boundary.reduce(
-    ([lat, lng], [pointLat, pointLng]) => [lat + pointLat, lng + pointLng],
-    [0, 0],
-  );
-  return [latSum / site.boundary.length, lngSum / site.boundary.length];
+  return polygonCentroid(site.boundary);
+}
+
+// Area-weighted polygon centroid (planar approximation — accurate enough at
+// the sub-kilometer footprints this app renders) rather than a naive vertex
+// average, so the marker lands at the shape's visual center instead of
+// drifting toward whichever side happens to have more boundary points.
+function polygonCentroid(points: LatLng[]): LatLng {
+  let area = 0;
+  let centroidLat = 0;
+  let centroidLng = 0;
+  for (let i = 0; i < points.length; i++) {
+    const [lat1, lng1] = points[i];
+    const [lat2, lng2] = points[(i + 1) % points.length];
+    const cross = lng1 * lat2 - lng2 * lat1;
+    area += cross;
+    centroidLng += (lng1 + lng2) * cross;
+    centroidLat += (lat1 + lat2) * cross;
+  }
+  area /= 2;
+  if (area === 0) {
+    const [latSum, lngSum] = points.reduce(
+      ([lat, lng], [pointLat, pointLng]) => [lat + pointLat, lng + pointLng],
+      [0, 0],
+    );
+    return [latSum / points.length, lngSum / points.length];
+  }
+  return [centroidLat / (6 * area), centroidLng / (6 * area)];
 }
