@@ -13,12 +13,14 @@ export function App() {
       <PanoramaProvider>
         <div className="app">
           <NavBar />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/map" element={<MapPage />} />
-            <Route path="/di-san" element={<HeritageListPage />} />
-            <Route path="/360" element={<Experience3DPage />} />
-          </Routes>
+          <main className="app__main">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/map" element={<MapPage />} />
+              <Route path="/di-san" element={<HeritageListPage />} />
+              <Route path="/360" element={<Experience3DPage />} />
+            </Routes>
+          </main>
         </div>
       </PanoramaProvider>
     </SitesProvider>

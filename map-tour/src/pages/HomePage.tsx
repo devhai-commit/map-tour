@@ -42,12 +42,15 @@ export function HomePage() {
       </section>
 
       <section className="home__values">
-        {VALUES.map((value) => (
-          <div key={value.title} className="home__value">
-            <h3>{value.title}</h3>
-            <p>{value.description}</p>
-          </div>
-        ))}
+        <h2 className="home__values-heading">Giá trị nổi bật</h2>
+        <div className="home__values-grid">
+          {VALUES.map((value) => (
+            <div key={value.title} className="home__value">
+              <h3>{value.title}</h3>
+              <p>{value.description}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="home__featured">
@@ -60,12 +63,30 @@ export function HomePage() {
             Xem danh sách đầy đủ →
           </button>
         </div>
-        {isLoading && <p className="home__status">Đang tải dữ liệu điểm tham quan...</p>}
-        {error && <p className="home__status home__status--error">{error}</p>}
+        {isLoading && (
+          <p className="home__status" role="status">
+            Đang tải dữ liệu điểm tham quan...
+          </p>
+        )}
+        {error && (
+          <p className="home__status home__status--error" role="alert">
+            {error}
+          </p>
+        )}
         <div className="home__featured-grid">
           {sites.map((site) => (
             <article key={site.id} className="home__featured-card">
-              {site.cover && <img className="home__featured-image" src={site.cover.url} alt={site.name} />}
+              {site.cover && (
+                <img
+                  className="home__featured-image"
+                  src={site.cover.url}
+                  alt={site.name}
+                  loading="lazy"
+                  decoding="async"
+                  width={800}
+                  height={600}
+                />
+              )}
               <div className="home__featured-body">
                 <span className={`home__featured-badge home__featured-badge--${site.kind}`}>
                   {site.kind === 'point' ? 'Điểm di tích' : 'Khu vực'}
