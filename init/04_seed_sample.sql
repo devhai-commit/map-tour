@@ -32,34 +32,46 @@ VALUES
   ('10000000-0000-0000-0000-000000000006', '/panoramas/khu-lang-nghe-gio-cha.jpg', 'panorama',
    '"Outdoor Workshop" by Dimitrios Savva & Jarod Guest (CC0, Poly Haven)', 'sites', '20000000-0000-0000-0000-000000000006');
 
-INSERT INTO sites (id, village_id, kind, position_lat, position_lng, name, category, short_description, panorama_media_id)
+-- Ảnh cover phẳng (thật, chụp tại làng Ước Lễ) — dùng cho card ở trang chủ /
+-- danh sách di sản, khác với ảnh 360° panorama ở trên. File vật lý phục vụ
+-- tĩnh từ public/heritage/*.jpg.
+INSERT INTO media (id, url, kind, owner_entity_type, owner_entity_id)
+VALUES
+  ('30000000-0000-0000-0000-000000000001', '/heritage/cong-lang.jpg', 'anh', 'sites', '20000000-0000-0000-0000-000000000001'),
+  ('30000000-0000-0000-0000-000000000002', '/heritage/dinh-lang.jpg', 'anh', 'sites', '20000000-0000-0000-0000-000000000002'),
+  ('30000000-0000-0000-0000-000000000003', '/heritage/chua-lang.jpg', 'anh', 'sites', '20000000-0000-0000-0000-000000000003'),
+  ('30000000-0000-0000-0000-000000000004', '/heritage/gieng-lang.jpg', 'anh', 'sites', '20000000-0000-0000-0000-000000000004'),
+  ('30000000-0000-0000-0000-000000000005', '/heritage/khu-lang.jpg', 'anh', 'sites', '20000000-0000-0000-0000-000000000005'),
+  ('30000000-0000-0000-0000-000000000006', '/heritage/khu-lang-gio-cha.jpg', 'anh', 'sites', '20000000-0000-0000-0000-000000000006');
+
+INSERT INTO sites (id, village_id, kind, position_lat, position_lng, name, category, short_description, panorama_media_id, cover_media_id)
 VALUES
   ('20000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', 'point', 20.7758, 105.7748,
    'Cổng làng Ước Lễ', 'Di tích kiến trúc',
    'Cổng làng cổ xây gạch từ thời Mạc, biểu tượng nổi tiếng nhất của làng.',
-   '10000000-0000-0000-0000-000000000001'),
+   '10000000-0000-0000-0000-000000000001', '30000000-0000-0000-0000-000000000001'),
   ('20000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'point', 20.7763, 105.7757,
    'Đình làng Ước Lễ', 'Di tích tín ngưỡng',
    'Nơi thờ Thành hoàng làng, diễn ra các lễ hội và sinh hoạt cộng đồng truyền thống.',
-   '10000000-0000-0000-0000-000000000002'),
+   '10000000-0000-0000-0000-000000000002', '30000000-0000-0000-0000-000000000002'),
   ('20000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', 'point', 20.7767, 105.7758,
    'Chùa làng Ước Lễ', 'Di tích tín ngưỡng',
    'Ngôi chùa cổ của làng, điểm sinh hoạt Phật giáo và tham quan văn hóa tâm linh.',
-   '10000000-0000-0000-0000-000000000003'),
+   '10000000-0000-0000-0000-000000000003', '30000000-0000-0000-0000-000000000003'),
   ('20000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001', 'point', 20.7760, 105.7754,
    'Giếng làng', 'Cảnh quan',
    'Giếng nước cổ gắn với đời sống sinh hoạt lâu đời của người dân trong làng.',
-   '10000000-0000-0000-0000-000000000004');
+   '10000000-0000-0000-0000-000000000004', '30000000-0000-0000-0000-000000000004');
 
-INSERT INTO sites (id, village_id, kind, boundary, name, category, short_description, panorama_media_id)
+INSERT INTO sites (id, village_id, kind, boundary, name, category, short_description, panorama_media_id, cover_media_id)
 VALUES
   ('20000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000001', 'area',
    '[[20.7761,105.7749],[20.7768,105.7753],[20.7766,105.7761],[20.7757,105.776],[20.7754,105.7752]]'::jsonb,
    'Khu làng cổ', 'Quần thể di sản',
    'Cụm nhà cổ, ngõ xóm lát gạch nghiêng và không gian kiến trúc truyền thống vùng đồng bằng sông Hồng.',
-   '10000000-0000-0000-0000-000000000005'),
+   '10000000-0000-0000-0000-000000000005', '30000000-0000-0000-0000-000000000005'),
   ('20000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000001', 'area',
    '[[20.7745,105.7758],[20.7749,105.7764],[20.7743,105.7769],[20.7738,105.7763]]'::jsonb,
    'Khu làng nghề giò chả', 'Làng nghề',
    'Cụm xưởng sản xuất giò chả truyền thống, nơi khách có thể tham quan quy trình chế biến.',
-   '10000000-0000-0000-0000-000000000006');
+   '10000000-0000-0000-0000-000000000006', '30000000-0000-0000-0000-000000000006');

@@ -13,6 +13,8 @@ interface BaseSite {
   village: string;
   /** 360° equirectangular photo shown in the panorama viewer, if available. */
   panorama?: SitePanorama;
+  /** Flat cover photo shown on cards (home, heritage list), if available. */
+  cover?: SitePanorama;
 }
 
 export interface PointSite extends BaseSite {

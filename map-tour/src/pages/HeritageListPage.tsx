@@ -48,9 +48,13 @@ export function HeritageListPage() {
       <div className="heritage-list__grid">
         {filteredSites.map((site) => (
           <article key={site.id} className="heritage-card">
-            <div className={`heritage-card__tile heritage-card__tile--${site.kind}`}>
-              <span>{site.name.charAt(0)}</span>
-            </div>
+            {site.cover ? (
+              <img className="heritage-card__image" src={site.cover.url} alt={site.name} />
+            ) : (
+              <div className={`heritage-card__tile heritage-card__tile--${site.kind}`}>
+                <span>{site.name.charAt(0)}</span>
+              </div>
+            )}
             <div className="heritage-card__body">
               <span className={`heritage-card__badge heritage-card__badge--${site.kind}`}>
                 {site.kind === 'point' ? 'Điểm di tích' : 'Khu vực'}

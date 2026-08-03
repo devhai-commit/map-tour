@@ -65,20 +65,23 @@ export function HomePage() {
         <div className="home__featured-grid">
           {sites.map((site) => (
             <article key={site.id} className="home__featured-card">
-              <span className={`home__featured-badge home__featured-badge--${site.kind}`}>
-                {site.kind === 'point' ? 'Điểm di tích' : 'Khu vực'}
-              </span>
-              <h3>{site.name}</h3>
-              <p>{site.description}</p>
-              <div className="home__featured-actions">
-                <button type="button" onClick={() => navigate(`/map?site=${site.id}`)}>
-                  Xem trên bản đồ
-                </button>
-                {site.panorama && (
-                  <button type="button" className="home__featured-panorama" onClick={() => openPanorama(site.id)}>
-                    Xem 360°
+              {site.cover && <img className="home__featured-image" src={site.cover.url} alt={site.name} />}
+              <div className="home__featured-body">
+                <span className={`home__featured-badge home__featured-badge--${site.kind}`}>
+                  {site.kind === 'point' ? 'Điểm di tích' : 'Khu vực'}
+                </span>
+                <h3>{site.name}</h3>
+                <p>{site.description}</p>
+                <div className="home__featured-actions">
+                  <button type="button" onClick={() => navigate(`/map?site=${site.id}`)}>
+                    Xem trên bản đồ
                   </button>
-                )}
+                  {site.panorama && (
+                    <button type="button" className="home__featured-panorama" onClick={() => openPanorama(site.id)}>
+                      Xem 360°
+                    </button>
+                  )}
+                </div>
               </div>
             </article>
           ))}

@@ -554,6 +554,17 @@ body {
   background: var(--color-surface-container-low);
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.home__featured-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.home__featured-body {
   padding: 1.1rem;
 }
 
@@ -677,25 +688,21 @@ body {
 }
 
 .heritage-card {
-  display: flex;
-  gap: 1rem;
   background: var(--color-surface-container-low);
   border: 1px solid var(--color-outline-variant);
   border-radius: var(--radius-lg);
-  padding: 1.1rem;
+  overflow: hidden;
 }
 
 .heritage-card__tile {
-  flex-shrink: 0;
-  width: 3rem;
-  height: 3rem;
-  border-radius: var(--radius-md);
+  width: 100%;
+  aspect-ratio: 4 / 3;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-serif);
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 2rem;
   color: var(--color-on-primary);
 }
 
@@ -705,6 +712,17 @@ body {
 
 .heritage-card__tile--area {
   background: var(--color-tertiary);
+}
+
+.heritage-card__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.heritage-card__body {
+  padding: 1.1rem;
 }
 
 .heritage-card__badge {

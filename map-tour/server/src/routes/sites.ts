@@ -20,6 +20,8 @@ interface SiteRow {
   boundary: LatLng[] | null;
   panorama_url: string | null;
   panorama_attribution: string | null;
+  cover_url: string | null;
+  cover_attribution: string | null;
 }
 
 const SITES_QUERY = `
@@ -34,16 +36,24 @@ const SITES_QUERY = `
     s.position_lng,
     s.boundary,
     m.url AS panorama_url,
-    m.attribution AS panorama_attribution
+    m.attribution AS panorama_attribution,
+    cover.url AS cover_url,
+    cover.attribution AS cover_attribution
   FROM sites s
   JOIN villages v ON v.id = s.village_id
   LEFT JOIN media m ON m.id = s.panorama_media_id
+  LEFT JOIN media cover ON cover.id = s.cover_media_id
   ORDER BY s.created_at
 `;
 
 function toPanorama(row: SiteRow): SitePanorama | undefined {
   if (!row.panorama_url) return undefined;
   return { url: row.panorama_url, attribution: row.panorama_attribution ?? undefined };
+}
+
+function toCover(row: SiteRow): SitePanorama | undefined {
+  if (!row.cover_url) return undefined;
+  return { url: row.cover_url, attribution: row.cover_attribution ?? undefined };
 }
 
 function toTourSite(row: SiteRow) {
@@ -54,6 +64,7 @@ function toTourSite(row: SiteRow) {
     description: row.short_description ?? '',
     village: row.village_name,
     panorama: toPanorama(row),
+    cover: toCover(row),
   };
 
   if (row.kind === 'point') {
