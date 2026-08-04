@@ -38,6 +38,10 @@ const MARKER_LABEL_MIN_ZOOM = 16;
 // the .tour-marker__label left offset (40px) in index.css — used to compute
 // each marker's on-screen bounding box for collision detection below.
 const MARKER_BADGE_SIZE = 32;
+// Must match .tour-marker--compact/.tour-marker--compact .tour-marker__badge
+// (18px) in index.css — used for the same collision math once markers switch
+// to compact mode below MARKER_LABEL_MIN_ZOOM.
+const MARKER_BADGE_SIZE_COMPACT = 18;
 const MARKER_LABEL_LEFT_OFFSET = 40;
 const MARKER_LABEL_GAP = 6;
 
@@ -127,6 +131,7 @@ function createMarkerElement(site: TourSite, onSelect: (id: string) => void): HT
   element.style.setProperty('--tour-marker-color', style.color);
   element.innerHTML = `
     <span class="tour-marker__badge">${style.icon}</span>
+    <span class="tour-marker__count" aria-hidden="true"></span>
     <span class="tour-marker__label">${escapeHtml(site.name)}</span>
   `;
   element.setAttribute('role', 'button');
@@ -158,8 +163,8 @@ interface MarkerBox {
   bottom: number;
 }
 
-function badgeBox(centerX: number, centerY: number): MarkerBox {
-  const half = MARKER_BADGE_SIZE / 2;
+function badgeBox(centerX: number, centerY: number, badgeSize: number = MARKER_BADGE_SIZE): MarkerBox {
+  const half = badgeSize / 2;
   return { left: centerX - half, right: centerX + half, top: centerY - half, bottom: centerY + half };
 }
 
@@ -183,35 +188,84 @@ function boxesOverlap(a: MarkerBox, b: MarkerBox): boolean {
   );
 }
 
+function setMarkerCount(element: HTMLElement, count: number) {
+  const countElement = element.querySelector<HTMLElement>('.tour-marker__count');
+  if (!countElement) return;
+  countElement.textContent = count > 0 ? `+${count}` : '';
+  countElement.classList.toggle('tour-marker__count--visible', count > 0);
+}
+
 // DOM markers don't get MapLibre's native symbol-layer collision detection
 // (that only applies between GL-rendered symbol layers), so two independent
-// markers whose real-world positions are close together can end up with
-// overlapping label pills at some zoom levels even though each marker's own
-// icon+label pair is correctly laid out. This greedily hides the label of
-// any lower-priority marker that would overlap an already-placed one —
-// priority is "currently selected first, then original site order".
-function resolveLabelCollisions(
+// markers whose real-world positions are close together (this village packs
+// 21 points into ~400m, several only 10-50m apart) can collide on screen at
+// ordinary zoom levels. A marker's label pill is much wider than its badge,
+// so checking "does my badge overlap another badge" and "does my label
+// overlap another label" as two separate passes misses the case where a
+// lower-priority marker's *badge* lands inside an earlier marker's already-
+// placed *label* — the badge pass alone would let it through, since it only
+// ever compared badges to badges. This single greedy pass in priority order
+// ("currently selected first, then original site order") avoids that: each
+// marker is checked against the ACTUAL rendered extent (label pill, or bare
+// badge if the label didn't fit) of every already-placed marker before it,
+// with two shrinking fallbacks:
+//   1. Try to show badge + label — if that full extent is clear, place it.
+//   2. Else try badge-only — if just the badge is clear, place it with its
+//      label hidden.
+//   3. Else hide the marker entirely and "absorb" it into whichever
+//      already-placed marker it collided with, which gets a "+N" count
+//      bubble so it's visible that more points sit there instead of
+//      silently vanishing. As the user zooms in, points spread apart on
+//      screen and re-emerge on their own.
+function resolveMarkerLayout(
   map: MapLibreMap,
   markers: Record<string, Marker>,
   orderedSiteIds: string[],
   labelSizes: Record<string, { width: number; height: number }>,
   selectedId: string | null,
+  badgeSize: number,
 ) {
   const prioritized = [...orderedSiteIds].sort((a, b) => {
     if (a === selectedId) return -1;
     if (b === selectedId) return 1;
     return 0;
   });
-  const placedBoxes: MarkerBox[] = [];
+
+  const placed: Array<{ siteId: string; box: MarkerBox }> = [];
+  const absorbedCounts: Record<string, number> = {};
+
   for (const siteId of prioritized) {
     const marker = markers[siteId];
-    const size = labelSizes[siteId];
-    if (!marker || !size) continue;
+    if (!marker) continue;
+    const element = marker.getElement();
     const point = map.project(marker.getLngLat());
-    const candidate = labelBox(point.x, point.y, size);
-    const hidden = placedBoxes.some((box) => boxesOverlap(candidate, box));
-    marker.getElement().classList.toggle('tour-marker--label-hidden', hidden);
-    placedBoxes.push(hidden ? badgeBox(point.x, point.y) : candidate);
+    const size = labelSizes[siteId];
+    const badgeOnlyBox = badgeBox(point.x, point.y, badgeSize);
+    const fullBox = size ? labelBox(point.x, point.y, size) : badgeOnlyBox;
+
+    if (!placed.some((entry) => boxesOverlap(fullBox, entry.box))) {
+      element.classList.remove('tour-marker--hidden', 'tour-marker--label-hidden');
+      setMarkerCount(element, 0);
+      placed.push({ siteId, box: fullBox });
+      continue;
+    }
+
+    if (!placed.some((entry) => boxesOverlap(badgeOnlyBox, entry.box))) {
+      element.classList.remove('tour-marker--hidden');
+      element.classList.add('tour-marker--label-hidden');
+      setMarkerCount(element, 0);
+      placed.push({ siteId, box: badgeOnlyBox });
+      continue;
+    }
+
+    const absorbingEntry = placed.find((entry) => boxesOverlap(badgeOnlyBox, entry.box));
+    if (absorbingEntry) absorbedCounts[absorbingEntry.siteId] = (absorbedCounts[absorbingEntry.siteId] ?? 0) + 1;
+    element.classList.add('tour-marker--hidden');
+  }
+
+  for (const [siteId, count] of Object.entries(absorbedCounts)) {
+    const marker = markers[siteId];
+    if (marker) setMarkerCount(marker.getElement(), count);
   }
 }
 
@@ -362,7 +416,8 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama }: TourMap
         for (const marker of Object.values(markersRef.current)) {
           marker.getElement().classList.toggle('tour-marker--compact', compact);
         }
-        if (!compact) resolveLabelCollisions(map, markersRef.current, orderedSiteIds, labelSizes, selectedIdRef.current);
+        const badgeSize = compact ? MARKER_BADGE_SIZE_COMPACT : MARKER_BADGE_SIZE;
+        resolveMarkerLayout(map, markersRef.current, orderedSiteIds, labelSizes, selectedIdRef.current, badgeSize);
       };
       updateMarkers();
       map.on('move', updateMarkers);

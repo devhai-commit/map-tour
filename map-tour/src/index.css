@@ -403,11 +403,59 @@ body {
   display: none;
 }
 
-/* Set by TourMap's resolveLabelCollisions when this marker's label would
+/* Set by TourMap's resolveMarkerLayout when this marker's label would
    overlap a higher-priority marker's label/badge at the current zoom — the
    icon stays in its exact, correct position, only the label is suppressed. */
 .tour-marker--label-hidden .tour-marker__label {
   display: none;
+}
+
+/* Set by resolveMarkerLayout when this marker's *badge* would overlap an
+   already-placed one — several of this village's 21 points sit only 10-50m
+   apart, close enough to collide on screen at ordinary zoom. The whole
+   marker (icon + label) hides rather than just the label, since a bare
+   overlapping icon with no name is unreadable clutter; the marker it
+   collided with shows a "+N" count instead so nothing looks silently
+   dropped. Panning/zooming re-runs the layout, so points separate and
+   reappear on their own once there's screen room for them. */
+.tour-marker--hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Small count bubble in the badge's corner, shown only when resolveMarkerLayout
+   has absorbed one or more nearby overlapping markers into this one. */
+.tour-marker__count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  border-radius: var(--radius-full);
+  background: var(--color-on-surface);
+  color: var(--color-surface-container-lowest);
+  border: 1.5px solid var(--color-surface-container-lowest);
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 0.6rem;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.tour-marker__count--visible {
+  display: flex;
+}
+
+.tour-marker--compact .tour-marker__count {
+  top: -3px;
+  right: -3px;
+  min-width: 12px;
+  height: 12px;
+  font-size: 0.5rem;
 }
 
 .site-list__panorama-btn {

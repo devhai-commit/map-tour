@@ -17,12 +17,18 @@ const ICON_CLUSTER = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.
 
 const ICON_CRAFT = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 14a6 6 0 0012 0" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M4 14h16" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M9 4l6 6" stroke="white" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="4" r="1.2" fill="white"/></svg>`;
 
+const ICON_HOUSE = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 11l8-7 8 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v10h12V10" stroke="white" stroke-width="2" stroke-linejoin="round"/><rect x="10" y="14" width="4" height="6" fill="white"/></svg>`;
+
+const ICON_PAVILION = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 8l9-5 9 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 8v3M19 8v3M12 6v14" stroke="white" stroke-width="2" stroke-linecap="round"/><path d="M4 20h16" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>`;
+
 const CATEGORY_STYLES: Record<string, CategoryStyle> = {
   'Di tích kiến trúc': { color: '#610000', icon: ICON_GATE },
   'Di tích tín ngưỡng': { color: '#b45309', icon: ICON_TEMPLE },
   'Cảnh quan': { color: '#0e7490', icon: ICON_DROP },
   'Quần thể di sản': { color: '#78350f', icon: ICON_CLUSTER },
   'Làng nghề': { color: '#3f6212', icon: ICON_CRAFT },
+  'Nhà cổ': { color: '#7c2d12', icon: ICON_HOUSE },
+  'Công trình công cộng': { color: '#44403c', icon: ICON_PAVILION },
 };
 
 const FALLBACK_STYLE: CategoryStyle = { color: '#610000', icon: ICON_GATE };
