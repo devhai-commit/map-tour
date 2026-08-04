@@ -28,3 +28,14 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ```
 
 Xem [`docs/trien-khai.md`](docs/trien-khai.md) để biết cách triển khai trên server, backup/restore, và các lưu ý bảo mật.
+
+## Dịch vụ chỉ đường (OSRM)
+
+Tính năng "chỉ đường" trên bản đồ dùng OSRM tự host (profile đi bộ) thay vì gọi server demo công khai. Cần chuẩn bị dữ liệu 1 lần trước khi bật service `osrm`:
+
+```powershell
+.\map-tour\routing\build.ps1
+docker compose up -d osrm api
+```
+
+Bản Linux/macOS: `bash map-tour/routing/build.sh`. Script tải bản đồ OSM Việt Nam từ Geofabrik, cắt vùng quanh làng Ước Lễ, rồi xử lý qua `osrm-extract`/`osrm-partition`/`osrm-customize` — chỉ cần chạy lại khi muốn cập nhật dữ liệu đường.

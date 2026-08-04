@@ -4,6 +4,7 @@
 // --color-tertiary-container).
 export const MAP_COLORS = {
   primary: '#610000',
+  primaryContainer: '#8b0000',
   secondaryContainer: '#fcd400',
   tertiaryContainer: '#354910',
 } as const;

@@ -23,4 +23,5 @@ export const env = {
   postgresPassword: required('POSTGRES_PASSWORD'),
   apiPort: Number(process.env.API_PORT ?? 8787),
   corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
+  osrmUrl: process.env.OSRM_URL ?? 'http://osrm:5000',
 };

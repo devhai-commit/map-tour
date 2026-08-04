@@ -1,2 +1,5 @@
 .env
 backups/
+.claude/
+.playwright-mcp/
+map-tour/routing/data/

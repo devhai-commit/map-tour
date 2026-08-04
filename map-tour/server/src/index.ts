@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import { env } from './env.js';
 import { sitesRouter } from './routes/sites.js';
+import { routingRouter } from './routes/routing.js';
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 app.use('/api', sitesRouter);
+app.use('/api', routingRouter);
 
 app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Unhandled API error:', error);
