@@ -6,14 +6,16 @@ import {
   Popup,
   LngLatBounds,
   addProtocol,
+  type GeoJSONSource,
   type MapLayerMouseEvent,
 } from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 import type { StyleSpecification } from 'maplibre-gl';
 import osmBrightStyle from '../assets/map/osm-bright-style.json';
+import { fetchRoute } from '../lib/api';
 import { MAP_COLORS } from '../lib/mapColors';
 import { getCategoryStyle } from '../lib/siteCategories';
-import { siteCenter } from '../types';
+import { siteCenter, toLngLat } from '../types';
 import type { AreaSite, LatLng, PointSite, TourSite } from '../types';
 
 // vietnam.pmtiles is built with the OpenMapTiles schema (Planetiler's default
@@ -25,6 +27,11 @@ const AREA_FILL_LAYER_ID = 'tour-areas-fill';
 const AREA_LINE_LAYER_ID = 'tour-areas-line';
 const ROUTE_SOURCE_ID = 'tour-route';
 const ROUTE_LINE_LAYER_ID = 'tour-route-line';
+// Separate source/layer for the on-demand point-to-point "chỉ đường" feature
+// (DirectionsPanel) — kept independent of the curated tour route above so
+// both can be visible at once without one overwriting the other's data.
+const DIRECTIONS_SOURCE_ID = 'tour-directions';
+const DIRECTIONS_LINE_LAYER_ID = 'tour-directions-line';
 
 // Icon badges and their label pills are a fixed screen-pixel size, so below
 // this zoom a small area polygon can shrink to fewer screen-pixels than the
@@ -58,31 +65,16 @@ const TOUR_ROUTE_SITE_IDS = [
   'khu-lang-nghe-gio-cha',
 ];
 
-// Public, key-free OSRM demo instance (FOSSGIS) with a "foot" profile — a
-// real production app should run its own routing backend instead.
-const FOOT_ROUTING_ENDPOINT = 'https://routing.openstreetmap.de/routed-foot/route/v1/foot';
-
-interface OsrmRouteResponse {
-  code: string;
-  routes?: Array<{ geometry: GeoJSON.LineString }>;
-}
-
-function isOsrmRouteResponse(value: unknown): value is OsrmRouteResponse {
-  return typeof value === 'object' && value !== null && 'code' in value;
-}
-
-async function fetchFootRoute(coords: [number, number][]): Promise<GeoJSON.Feature<GeoJSON.LineString> | null> {
-  const coordsParam = coords.map(([lng, lat]) => `${lng},${lat}`).join(';');
-  const url = `${FOOT_ROUTING_ENDPOINT}/${coordsParam}?overview=full&geometries=geojson`;
+// Wraps the API's shaped route response (map-tour/server/src/routes/routing.ts,
+// proxying a self-hosted OSRM instance) as a GeoJSON feature ready to hand
+// to a MapLibre source; returns null on any failure so callers can skip
+// drawing rather than crash the rest of map setup.
+async function fetchRouteFeature(coords: [number, number][]): Promise<GeoJSON.Feature<GeoJSON.LineString> | null> {
   try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Routing request failed: HTTP ${response.status}`);
-    const body: unknown = await response.json();
-    const geometry = isOsrmRouteResponse(body) ? body.routes?.[0]?.geometry : undefined;
-    if (!geometry) throw new Error('Routing response missing route geometry');
-    return { type: 'Feature', properties: {}, geometry };
+    const result = await fetchRoute(coords);
+    return { type: 'Feature', properties: {}, geometry: result.geometry };
   } catch (error: unknown) {
-    console.error('Failed to fetch walking-tour route', error);
+    console.error('Failed to fetch walking route', error);
     return null;
   }
 }
@@ -95,10 +87,6 @@ function ensurePmtilesProtocol() {
   const protocol = new Protocol();
   addProtocol('pmtiles', protocol.tile);
   protocolRegistered = true;
-}
-
-function toLngLat([lat, lng]: LatLng): [number, number] {
-  return [lng, lat];
 }
 
 function closedRing(boundary: LatLng[]): [number, number][] {
@@ -301,9 +289,11 @@ interface TourMapProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onOpenPanorama: (id: string) => void;
+  /** Point-to-point "chỉ đường" result to draw, or null to clear it. */
+  directionsRoute?: GeoJSON.Feature<GeoJSON.LineString> | null;
 }
 
-export function TourMap({ sites, selectedId, onSelect, onOpenPanorama }: TourMapProps) {
+export function TourMap({ sites, selectedId, onSelect, onOpenPanorama, directionsRoute = null }: TourMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markersRef = useRef<Record<string, Marker>>({});
@@ -432,12 +422,11 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama }: TourMap
       );
       if (routeSites.length >= 2) {
         const routeCoords = routeSites.map((site) => toLngLat(siteCenter(site)));
-        void fetchFootRoute(routeCoords).then((routeFeature) => {
+        void fetchRouteFeature(routeCoords).then((routeFeature) => {
           if (disposed || !routeFeature) return;
           map.addSource(ROUTE_SOURCE_ID, {
             type: 'geojson',
             data: routeFeature,
-            attribution: 'Routing: <a href="https://routing.openstreetmap.de/">FOSSGIS OSRM</a>',
           });
           map.addLayer({
             id: ROUTE_LINE_LAYER_ID,
@@ -489,6 +478,37 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama }: TourMap
     // waiting for the next pan/zoom to re-resolve overlaps.
     map.fire('move');
   }, [selectedId]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const applyDirectionsRoute = () => {
+      const source = map.getSource<GeoJSONSource>(DIRECTIONS_SOURCE_ID);
+      if (!directionsRoute) {
+        source?.setData({ type: 'FeatureCollection', features: [] });
+        return;
+      }
+      if (source) {
+        source.setData(directionsRoute);
+        return;
+      }
+      map.addSource(DIRECTIONS_SOURCE_ID, { type: 'geojson', data: directionsRoute });
+      map.addLayer({
+        id: DIRECTIONS_LINE_LAYER_ID,
+        type: 'line',
+        source: DIRECTIONS_SOURCE_ID,
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: { 'line-color': MAP_COLORS.primaryContainer, 'line-width': 5, 'line-opacity': 0.9 },
+      });
+    };
+
+    // The map's own "load" event (mount-time setup above) may not have fired
+    // yet the first time this effect runs, e.g. if a directions request
+    // resolves before markers/areas finish loading.
+    if (map.isStyleLoaded()) applyDirectionsRoute();
+    else map.once('load', applyDirectionsRoute);
+  }, [directionsRoute]);
 
   return <div ref={containerRef} style={{ height: '100%', width: '100%' }} />;
 }

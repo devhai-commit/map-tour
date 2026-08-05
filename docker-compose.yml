@@ -33,11 +33,26 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       API_PORT: 8787
       CORS_ORIGIN: ${API_CORS_ORIGIN:-http://localhost:5173}
+      OSRM_URL: ${OSRM_URL:-http://osrm:5000}
     ports:
       - '${API_PORT:-8787}:8787'
     depends_on:
       postgres:
         condition: service_healthy
+      osrm:
+        condition: service_started
+
+  # Dịch vụ định tuyến (chỉ đường đi bộ) — dữ liệu do map-tour/routing/build.ps1
+  # (hoặc build.sh) chuẩn bị trước, KHÔNG publish port ra ngoài: chỉ service
+  # `api` gọi tới qua network Docker nội bộ (http://osrm:5000), giống cách
+  # `postgres` chỉ được `api` truy cập trực tiếp.
+  osrm:
+    image: osrm/osrm-backend
+    container_name: lang-uoc-le-db-osrm
+    restart: unless-stopped
+    command: osrm-routed --algorithm mld /data/uoc-le.osrm
+    volumes:
+      - ./map-tour/routing/data:/data:ro
 
   # Giao diện quản trị DB nhẹ, KHÔNG chạy mặc định.
   # Bật khi cần: docker compose --profile tools up -d

@@ -1,4 +1,5 @@
 import type { TourSite, VillageDetails } from '../types';
+import type { RouteResult } from './routing';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
 
@@ -15,6 +16,17 @@ export async function fetchVillageDetails(slug: string, signal?: AbortSignal): P
   if (!response.ok) {
     if (response.status === 404) throw new Error('Không tìm thấy thông tin Làng Ước Lễ.');
     throw new Error(`Không tải được thông tin làng (HTTP ${response.status})`);
+  }
+  return response.json();
+}
+
+// `coords` are `[lng, lat]` pairs (OSRM/GeoJSON order) — convert with
+// `toLngLat` from ../types before calling this.
+export async function fetchRoute(coords: [number, number][]): Promise<RouteResult> {
+  const coordinatesParam = coords.map(([lng, lat]) => `${lng},${lat}`).join(';');
+  const response = await fetch(`${API_BASE_URL}/route?coordinates=${coordinatesParam}`);
+  if (!response.ok) {
+    throw new Error(`Không tìm được tuyến đường (HTTP ${response.status})`);
   }
   return response.json();
 }

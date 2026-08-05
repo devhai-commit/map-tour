@@ -1,5 +1,12 @@
 export type LatLng = [number, number]; // [lat, lng]
 
+// GeoJSON/OSRM/MapLibre all expect [lng, lat] — the opposite order this app
+// stores site coordinates in — so callers convert through this one helper
+// rather than flipping tuples inline at each call site.
+export function toLngLat([lat, lng]: LatLng): [number, number] {
+  return [lng, lat];
+}
+
 interface SitePanorama {
   url: string;
   attribution?: string;
