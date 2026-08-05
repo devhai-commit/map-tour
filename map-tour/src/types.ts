@@ -30,6 +30,73 @@ export interface AreaSite extends BaseSite {
 
 export type TourSite = PointSite | AreaSite;
 
+export interface VillageHistoryItem {
+  id: string;
+  type: 'lich_su' | 'su_kien' | 'phong_tuc' | 'truyen_thuyet';
+  title: string;
+  period: string | null;
+  body: string | null;
+}
+
+export interface VillageVideo {
+  id: string;
+  url: string;
+  caption: string | null;
+  attribution: string | null;
+}
+
+export interface VillageCraftProduct {
+  id: string;
+  name: string;
+  productGroup: string | null;
+  startPeriod: string | null;
+  isTraditional: boolean | null;
+  culturalLinkLevel: string | null;
+  materials: string | null;
+  productStory: string | null;
+  processDescription: string | null;
+  giftSuitability: string | null;
+  hasExperienceActivity: boolean | null;
+  experienceDuration: string | null;
+}
+
+export interface VillageDetails {
+  id: string;
+  slug: string;
+  name: string;
+  aliases: string[];
+  adminLocation: string | null;
+  currentAdminLocation: string | null;
+  previousAdminLocation: string | null;
+  googleMapsLink: string | null;
+  foundedPeriod: string | null;
+  brandIdentity: string | null;
+  nameMeaning: string | null;
+  mainOccupations: string[];
+  naturalFeatures: string | null;
+  siteSelectionHistory: string | null;
+  morphologyDescription: string | null;
+  morphologyImage?: SitePanorama;
+  overview: string | null;
+  traditionalCraft: string | null;
+  history: VillageHistoryItem[];
+  timeline: VillageHistoryItem[];
+  customs: VillageHistoryItem[];
+  legends: VillageHistoryItem[];
+  culturalStories: VillageHistoryItem[];
+  craftProducts: VillageCraftProduct[];
+  sites: TourSite[];
+  gallery: Array<SitePanorama & { alt: string }>;
+  videos: VillageVideo[];
+  statistics: {
+    siteCount: number;
+    pointCount: number;
+    areaCount: number;
+    panoramaCount: number;
+    imageCount: number;
+  };
+}
+
 export function siteCenter(site: TourSite): LatLng {
   if (site.kind === 'point') return site.position;
   return polygonCentroid(site.boundary);
