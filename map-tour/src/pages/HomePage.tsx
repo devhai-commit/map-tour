@@ -1,6 +1,7 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSites } from '../context/SitesContext';
 import { usePanorama } from '../context/PanoramaContext';
+import { APP_ROUTES } from '../routes';
 
 const VALUES = [
   {
@@ -32,10 +33,13 @@ export function HomePage() {
           minh làng truyền thống vùng đồng bằng sông Hồng.
         </p>
         <div className="home__hero-actions">
-          <button type="button" className="home__cta home__cta--primary" onClick={() => navigate('/map')}>
+          <button type="button" className="home__cta home__cta--primary" onClick={() => navigate(APP_ROUTES.map)}>
             Khám phá bản đồ
           </button>
-          <button type="button" className="home__cta home__cta--ghost" onClick={() => navigate('/360')}>
+          <Link className="home__cta home__cta--story" to={APP_ROUTES.villageIntroduction}>
+            Khám phá câu chuyện Làng Ước Lễ →
+          </Link>
+          <button type="button" className="home__cta home__cta--ghost" onClick={() => navigate(APP_ROUTES.panorama)}>
             Xem trải nghiệm 360°
           </button>
         </div>
@@ -59,7 +63,7 @@ export function HomePage() {
             <span className="home__section-eyebrow">Di sản tiêu biểu</span>
             <h2>Điểm tham quan trong làng</h2>
           </div>
-          <button type="button" className="home__link" onClick={() => navigate('/di-san')}>
+          <button type="button" className="home__link" onClick={() => navigate(APP_ROUTES.heritage)}>
             Xem danh sách đầy đủ →
           </button>
         </div>
@@ -94,7 +98,7 @@ export function HomePage() {
                 <h3>{site.name}</h3>
                 <p>{site.description}</p>
                 <div className="home__featured-actions">
-                  <button type="button" onClick={() => navigate(`/map?site=${site.id}`)}>
+                  <button type="button" onClick={() => navigate(`${APP_ROUTES.map}?site=${site.id}`)}>
                     Xem trên bản đồ
                   </button>
                   {site.panorama && (
