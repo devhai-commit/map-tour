@@ -1,6 +1,7 @@
 node_modules
 dist
 *.local
+*.tsbuildinfo
 
 # Large binary map data — too big for git, distribute separately (see README).
 public/tiles/*.pmtiles

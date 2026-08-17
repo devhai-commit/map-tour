@@ -811,6 +811,14 @@ body {
   border-color: var(--color-primary);
 }
 
+.home__cta--story {
+  background: var(--color-secondary-container);
+  color: var(--color-on-secondary-container);
+  border-color: #d3b200;
+  text-decoration: none;
+  box-shadow: 0 5px 18px rgba(112, 93, 0, 0.18);
+}
+
 .home__cta:hover {
   opacity: 0.85;
 }

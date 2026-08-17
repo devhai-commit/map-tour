@@ -4,6 +4,7 @@ import { VillageLayout } from './components/VillageLayout';
 import { VillagesPortalPage } from './pages/VillagesPortalPage';
 import { HomePage } from './pages/HomePage';
 import { HeritageListPage } from './pages/HeritageListPage';
+import { APP_ROUTES } from './routes';
 
 const MapPage = lazy(() => import('./pages/MapPage').then((m) => ({ default: m.MapPage })));
 const Experience3DPage = lazy(() =>
@@ -11,6 +12,9 @@ const Experience3DPage = lazy(() =>
 );
 const AdminImportPage = lazy(() =>
   import('./pages/AdminImportPage').then((m) => ({ default: m.AdminImportPage })),
+);
+const VillageIntroductionPage = lazy(() =>
+  import('./pages/VillageIntroductionPage').then((m) => ({ default: m.VillageIntroductionPage })),
 );
 
 export function App() {
@@ -21,6 +25,7 @@ export function App() {
           <Route path="/" element={<VillagesPortalPage />} />
           <Route path="/lang/:villageSlug" element={<VillageLayout />}>
             <Route index element={<HomePage />} />
+            <Route path={APP_ROUTES.villageIntroduction} element={<VillageIntroductionPage />} />
             <Route path="map" element={<MapPage />} />
             <Route path="di-san" element={<HeritageListPage />} />
             <Route path="360" element={<Experience3DPage />} />
