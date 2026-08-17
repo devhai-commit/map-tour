@@ -1,57 +1,67 @@
 import { useNavigate } from 'react-router-dom';
 import { useSites } from '../context/SitesContext';
 import { usePanorama } from '../context/PanoramaContext';
+import { useVillage } from '../context/VillageContext';
 
-const VALUES = [
-  {
-    title: 'Cổng làng cổ',
-    description: 'Cổng làng xây gạch từ thời Mạc, biểu tượng nổi tiếng nhất của làng Ước Lễ.',
-  },
-  {
-    title: 'Tín ngưỡng & lễ hội',
-    description: 'Đình và chùa làng — nơi diễn ra lễ hội, sinh hoạt cộng đồng và tín ngưỡng truyền thống.',
-  },
-  {
-    title: 'Làng nghề giò chả',
-    description: 'Nghề làm giò chả truyền thống lâu đời, đặc sản gắn liền với tên tuổi của làng.',
-  },
-];
+interface ValueCard {
+  title: string;
+  description: string;
+}
+
+function buildValueCards(village: ReturnType<typeof useVillage>['village']): ValueCard[] {
+  if (!village) return [];
+  const cards: ValueCard[] = [];
+  if (village.mainOccupations.length > 0) {
+    cards.push({ title: 'Nghề truyền thống', description: village.mainOccupations.join(', ') });
+  }
+  if (village.foundedPeriod) {
+    cards.push({ title: 'Hình thành', description: village.foundedPeriod });
+  }
+  if (village.adminLocation) {
+    cards.push({ title: 'Vị trí', description: village.adminLocation });
+  }
+  return cards;
+}
 
 export function HomePage() {
   const navigate = useNavigate();
   const { openPanorama } = usePanorama();
   const { sites, isLoading, error } = useSites();
+  const { village } = useVillage();
+  const values = buildValueCards(village);
 
   return (
     <div className="home">
       <section className="home__hero">
         <p className="home__hero-eyebrow">Du lịch làng nghề số</p>
-        <h1>{sites[0]?.village ?? 'Làng Ước Lễ'}</h1>
+        <h1>{village?.name ?? '...'}</h1>
         <p className="home__hero-lead">
           Bản đồ số các di tích và khu vực di sản trong làng — điểm thí điểm của đề tài nghiên cứu du lịch thông
           minh làng truyền thống vùng đồng bằng sông Hồng.
         </p>
         <div className="home__hero-actions">
-          <button type="button" className="home__cta home__cta--primary" onClick={() => navigate('/map')}>
+          <button type="button" className="home__cta home__cta--primary" onClick={() => navigate('map')}>
             Khám phá bản đồ
           </button>
-          <button type="button" className="home__cta home__cta--ghost" onClick={() => navigate('/360')}>
+          <button type="button" className="home__cta home__cta--ghost" onClick={() => navigate('360')}>
             Xem trải nghiệm 360°
           </button>
         </div>
       </section>
 
-      <section className="home__values">
-        <h2 className="home__values-heading">Giá trị nổi bật</h2>
-        <div className="home__values-grid">
-          {VALUES.map((value) => (
-            <div key={value.title} className="home__value">
-              <h3>{value.title}</h3>
-              <p>{value.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      {values.length > 0 && (
+        <section className="home__values">
+          <h2 className="home__values-heading">Giá trị nổi bật</h2>
+          <div className="home__values-grid">
+            {values.map((value) => (
+              <div key={value.title} className="home__value">
+                <h3>{value.title}</h3>
+                <p>{value.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="home__featured">
         <div className="home__featured-heading">
@@ -59,7 +69,7 @@ export function HomePage() {
             <span className="home__section-eyebrow">Di sản tiêu biểu</span>
             <h2>Điểm tham quan trong làng</h2>
           </div>
-          <button type="button" className="home__link" onClick={() => navigate('/di-san')}>
+          <button type="button" className="home__link" onClick={() => navigate('di-san')}>
             Xem danh sách đầy đủ →
           </button>
         </div>
@@ -94,7 +104,7 @@ export function HomePage() {
                 <h3>{site.name}</h3>
                 <p>{site.description}</p>
                 <div className="home__featured-actions">
-                  <button type="button" onClick={() => navigate(`/map?site=${site.id}`)}>
+                  <button type="button" onClick={() => navigate(`map?site=${site.id}`)}>
                     Xem trên bản đồ
                   </button>
                   {site.panorama && (

@@ -1,21 +1,21 @@
 import { NavLink } from 'react-router-dom';
-import { useSites } from '../context/SitesContext';
+import { useVillage } from '../context/VillageContext';
 
 const NAV_ITEMS: Array<{ to: string; label: string; end?: boolean }> = [
-  { to: '/', label: 'Trang chủ', end: true },
-  { to: '/map', label: 'Bản đồ' },
-  { to: '/di-san', label: 'Danh sách di sản' },
-  { to: '/360', label: 'Trải nghiệm 360°' },
+  { to: '.', label: 'Trang chủ', end: true },
+  { to: 'map', label: 'Bản đồ' },
+  { to: 'di-san', label: 'Danh sách di sản' },
+  { to: '360', label: 'Trải nghiệm 360°' },
 ];
 
 export function NavBar() {
-  const { sites } = useSites();
+  const { village } = useVillage();
 
   return (
     <header className="nav-bar">
       <div className="nav-bar__inner">
-        <NavLink to="/" className="nav-bar__brand">
-          {sites[0]?.village ?? 'Làng Ước Lễ'}
+        <NavLink to="." end className="nav-bar__brand">
+          {village?.name ?? '...'}
         </NavLink>
         <nav className="nav-bar__links">
           {NAV_ITEMS.map((item) => (
@@ -28,6 +28,9 @@ export function NavBar() {
               {item.label}
             </NavLink>
           ))}
+          <NavLink to="/" className="nav-bar__link nav-bar__link--back">
+            ← Tất cả làng nghề
+          </NavLink>
         </nav>
       </div>
     </header>

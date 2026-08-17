@@ -34,6 +34,7 @@ services:
       API_PORT: 8787
       CORS_ORIGIN: ${API_CORS_ORIGIN:-http://localhost:5173}
       OSRM_URL: ${OSRM_URL:-http://osrm:5000}
+      ADMIN_IMPORT_KEY: ${ADMIN_IMPORT_KEY:-}
     ports:
       - '${API_PORT:-8787}:8787'
     depends_on:

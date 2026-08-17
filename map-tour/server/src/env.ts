@@ -24,4 +24,7 @@ export const env = {
   apiPort: Number(process.env.API_PORT ?? 8787),
   corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
   osrmUrl: process.env.OSRM_URL ?? 'http://osrm:5000',
+  // Shared-secret gate for /api/admin/* (Excel data import) — unset disables
+  // those routes entirely rather than leaving them open by default.
+  adminImportKey: process.env.ADMIN_IMPORT_KEY,
 };

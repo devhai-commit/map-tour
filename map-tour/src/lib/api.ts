@@ -1,10 +1,26 @@
-import type { TourSite } from '../types';
+import type { TourSite, Village } from '../types';
 import type { RouteResult } from './routing';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? '/api';
 
-export async function fetchSites(): Promise<TourSite[]> {
-  const response = await fetch(`${API_BASE_URL}/sites`);
+export async function fetchVillages(): Promise<Village[]> {
+  const response = await fetch(`${API_BASE_URL}/villages`);
+  if (!response.ok) {
+    throw new Error(`Không tải được danh sách làng (HTTP ${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchVillage(villageSlug: string): Promise<Village> {
+  const response = await fetch(`${API_BASE_URL}/villages/${villageSlug}`);
+  if (!response.ok) {
+    throw new Error(`Không tải được thông tin làng (HTTP ${response.status})`);
+  }
+  return response.json();
+}
+
+export async function fetchSites(villageSlug: string): Promise<TourSite[]> {
+  const response = await fetch(`${API_BASE_URL}/villages/${villageSlug}/sites`);
   if (!response.ok) {
     throw new Error(`Không tải được dữ liệu điểm tham quan (HTTP ${response.status})`);
   }

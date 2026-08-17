@@ -10,17 +10,18 @@ interface SitesContextValue {
 
 const SitesContext = createContext<SitesContextValue | null>(null);
 
-export function SitesProvider({ children }: { children: ReactNode }) {
+export function SitesProvider({ villageSlug, children }: { villageSlug: string; children: ReactNode }) {
   const [sites, setSites] = useState<TourSite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
+    setIsLoading(true);
 
     async function load() {
       try {
-        const data = await fetchSites();
+        const data = await fetchSites(villageSlug);
         if (!controller.signal.aborted) {
           setSites(data);
           setError(null);
@@ -38,7 +39,7 @@ export function SitesProvider({ children }: { children: ReactNode }) {
 
     load();
     return () => controller.abort();
-  }, []);
+  }, [villageSlug]);
 
   return <SitesContext.Provider value={{ sites, isLoading, error }}>{children}</SitesContext.Provider>;
 }

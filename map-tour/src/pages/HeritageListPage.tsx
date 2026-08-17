@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSites } from '../context/SitesContext';
 import { usePanorama } from '../context/PanoramaContext';
+import { useVillage } from '../context/VillageContext';
 import type { TourSite } from '../types';
 
 const KIND_FILTERS: Array<{ value: 'all' | TourSite['kind']; label: string }> = [
@@ -15,6 +16,7 @@ export function HeritageListPage() {
   const navigate = useNavigate();
   const { openPanorama } = usePanorama();
   const { sites, isLoading, error } = useSites();
+  const { village } = useVillage();
 
   const filteredSites = useMemo(
     () => sites.filter((site) => kindFilter === 'all' || site.kind === kindFilter),
@@ -25,7 +27,10 @@ export function HeritageListPage() {
     <div className="heritage-list">
       <header className="heritage-list__header">
         <h1>Danh sách Di sản</h1>
-        <p>Các di tích &amp; khu vực di sản của Làng Ước Lễ, Tân Ước, Hà Nội.</p>
+        <p>
+          Các di tích &amp; khu vực di sản của {village?.name ?? '...'}
+          {village?.adminLocation ? `, ${village.adminLocation}` : ''}.
+        </p>
       </header>
       <div className="heritage-list__filters">
         {KIND_FILTERS.map((filter) => (
@@ -63,7 +68,7 @@ export function HeritageListPage() {
               <p className="heritage-card__category">{site.category}</p>
               <p className="heritage-card__description">{site.description}</p>
               <div className="heritage-card__actions">
-                <button type="button" onClick={() => navigate(`/map?site=${site.id}`)}>
+                <button type="button" onClick={() => navigate(`../map?site=${site.id}`)}>
                   Xem trên bản đồ
                 </button>
                 {site.panorama && (

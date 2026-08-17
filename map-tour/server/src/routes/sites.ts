@@ -43,6 +43,7 @@ const SITES_QUERY = `
   JOIN villages v ON v.id = s.village_id
   LEFT JOIN media m ON m.id = s.panorama_media_id
   LEFT JOIN media cover ON cover.id = s.cover_media_id
+  WHERE v.slug = $1
   ORDER BY s.created_at
 `;
 
@@ -75,9 +76,9 @@ function toTourSite(row: SiteRow) {
 
 export const sitesRouter = Router();
 
-sitesRouter.get('/sites', async (_req, res, next) => {
+sitesRouter.get('/villages/:slug/sites', async (req, res, next) => {
   try {
-    const result = await pool.query<SiteRow>(SITES_QUERY);
+    const result = await pool.query<SiteRow>(SITES_QUERY, [req.params.slug]);
     res.json(result.rows.map(toTourSite));
   } catch (error) {
     next(error);

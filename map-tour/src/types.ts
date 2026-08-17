@@ -1,3 +1,13 @@
+export interface Village {
+  id: string;
+  slug: string;
+  name: string;
+  adminLocation: string | null;
+  mainOccupations: string[];
+  foundedPeriod: string | null;
+  coverUrl: string | null;
+}
+
 export type LatLng = [number, number]; // [lat, lng]
 
 // GeoJSON/OSRM/MapLibre all expect [lng, lat] — the opposite order this app
