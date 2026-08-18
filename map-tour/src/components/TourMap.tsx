@@ -420,10 +420,17 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama, direction
   const selectedIdRef = useRef<string | null>(selectedId);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || sites.length === 0) return;
 
     let disposed = false;
     ensurePmtilesProtocol();
+
+    // Put the initial viewport inside the PMTiles archive before MapLibre
+    // starts loading the style. Waiting for the style's `load` event to fit
+    // the sites can leave the map at MapLibre's [0, 0] default, outside the
+    // Vietnam source bounds, and prevent the tile load needed to reach that
+    // event in some browsers.
+    const initialBounds = siteBounds(sites)!;
 
     const pmtilesUrl = new URL('/tiles/vietnam.pmtiles', window.location.origin).href;
     const style: StyleSpecification = {
@@ -443,6 +450,8 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama, direction
     const map = new MapLibreMap({
       container: containerRef.current,
       style,
+      bounds: initialBounds,
+      fitBoundsOptions: { padding: 48, duration: 0 },
     });
     mapRef.current = map;
     map.addControl(new NavigationControl(), 'top-right');
@@ -533,9 +542,6 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama, direction
       updateMarkers();
       map.on('move', updateMarkers);
 
-      const bounds = siteBounds(sites);
-      if (bounds) map.fitBounds(bounds, { padding: 48, duration: 0 });
-
       // Fetch the real walking route for the curated tour stops in the
       // background so it doesn't delay the rest of map setup above.
       const routeSites = TOUR_ROUTE_SITE_IDS.map((id) => sites.find((site) => site.id === id)).filter(
@@ -572,9 +578,9 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama, direction
       map.remove();
       mapRef.current = null;
     };
-    // Sites arrive asynchronously from the active village API. Recreate the
-    // map when that dataset changes so markers and fitBounds are not frozen
-    // to the empty array from the first render.
+    // Sites arrive asynchronously from the active village API. The guard at
+    // the start delays map creation until a non-empty dataset is available;
+    // recreate it if the active village later supplies a different dataset.
   }, [sites]);
 
   useEffect(() => {
