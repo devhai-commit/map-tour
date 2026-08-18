@@ -3,6 +3,7 @@ import { useVillage } from '../context/VillageContext';
 
 const NAV_ITEMS: Array<{ to: string; label: string; end?: boolean }> = [
   { to: '.', label: 'Trang chủ', end: true },
+  { to: 'gioi-thieu', label: 'Giới thiệu' },
   { to: 'map', label: 'Bản đồ' },
   { to: 'di-san', label: 'Danh sách di sản' },
   { to: '360', label: 'Trải nghiệm 360°' },

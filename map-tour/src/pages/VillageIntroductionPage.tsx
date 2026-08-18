@@ -43,7 +43,7 @@ export function VillageIntroductionPage() {
 
   useEffect(() => {
     const previousTitle = document.title;
-    document.title = village ? `${village.name} — Di sản làng nghề` : 'Giới thiệu Làng Ước Lễ';
+    document.title = village ? `${village.name} — Di sản làng nghề` : 'Giới thiệu làng nghề';
     const existingDescription = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     const description = existingDescription ?? document.createElement('meta');
     const previousDescription = existingDescription?.content;
@@ -53,7 +53,7 @@ export function VillageIntroductionPage() {
     }
     description.content = village
       ? [village.name, village.adminLocation, village.mainOccupations.join(', ')].filter(Boolean).join(' — ')
-      : 'Hồ sơ số hóa Làng Ước Lễ.';
+      : 'Hồ sơ số hóa làng nghề.';
     return () => {
       document.title = previousTitle;
       if (existingDescription) description.content = previousDescription ?? '';
@@ -94,7 +94,7 @@ export function VillageIntroductionPage() {
       <VillageGallery village={village} />
       <VillageVideos village={village} />
       <VillageMapSection village={village} />
-      <VillageCallToAction hasPanorama={village.statistics.panoramaCount > 0} />
+      <VillageCallToAction villageName={village.name} hasPanorama={village.statistics.panoramaCount > 0} />
       <footer className="village-page__footer">Dữ liệu giới thiệu được tổng hợp từ hồ sơ số hóa của {village.name}.</footer>
     </article>
   );
@@ -107,7 +107,7 @@ function VillagePageLoading() {
       <div className="village-skeleton-row">
         <div className="village-skeleton" /><div className="village-skeleton" /><div className="village-skeleton" />
       </div>
-      <p role="status">Đang mở hồ sơ Làng Ước Lễ...</p>
+      <p role="status">Đang mở hồ sơ làng...</p>
     </div>
   );
 }

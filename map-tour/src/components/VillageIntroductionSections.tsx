@@ -104,10 +104,10 @@ export function VillageNameMeaning({ village }: { village: VillageDetails }) {
   if (!village.nameMeaning) return null;
   return (
     <section className="village-section village-name-meaning" aria-labelledby="village-name-title">
-      <div className="village-name-meaning__mark" aria-hidden="true">Ước · Lễ</div>
+      <div className="village-name-meaning__mark" aria-hidden="true">{village.name.split(/\s+/).join(' · ')}</div>
       <div>
         <span>Theo tư liệu khảo sát</span>
-        <h2 id="village-name-title">Danh xưng Ước Lễ</h2>
+        <h2 id="village-name-title">Danh xưng {village.name}</h2>
         <blockquote>{village.nameMeaning}</blockquote>
       </div>
     </section>
@@ -145,7 +145,7 @@ export function VillageCulturalStories({ village }: { village: VillageDetails })
     <section className="village-section" aria-labelledby="village-cultural-stories-title">
       <div className="village-section__heading village-section__heading--center">
         <span>Nếp làng còn lưu giữ</span>
-        <h2 id="village-cultural-stories-title">Phong tục và nghĩa tình Ước Lễ</h2>
+        <h2 id="village-cultural-stories-title">Phong tục và nghĩa tình {village.name}</h2>
       </div>
       <div className="village-story-grid">
         {village.customs.map((story) => <VillageStoryCard key={story.id} story={story} tone="gold" />)}
@@ -232,7 +232,7 @@ export function TraditionalCraft({ village }: { village: VillageDetails }) {
       {craftSite?.cover && <SafeImage src={craftSite.cover.url} alt={craftSite.name} className="village-craft__image" />}
       <div className="village-craft__content">
         <span>Nghề truyền thống</span>
-        <h2 id="village-craft-title">Nghề làm giò chả</h2>
+        <h2 id="village-craft-title">Nghề truyền thống {village.name}</h2>
         {village.traditionalCraft ? <TextParagraphs text={village.traditionalCraft} /> : craftSite?.description && <p>{craftSite.description}</p>}
         {village.mainOccupations.length > 0 && (
           <ul>{village.mainOccupations.map((occupation) => <li key={occupation}>{occupation}</li>)}</ul>
@@ -308,7 +308,7 @@ export function VillageGallery({ village }: { village: VillageDetails }) {
   return (
     <section className="village-section" aria-labelledby="village-gallery-title">
       <div className="village-section__heading">
-        <span>Góc nhìn Ước Lễ</span>
+        <span>Góc nhìn {village.name}</span>
         <h2 id="village-gallery-title">Thư viện hình ảnh</h2>
       </div>
       <div className="village-gallery">
@@ -332,7 +332,7 @@ export function VillageMapSection({ village }: { village: VillageDetails }) {
     <section className="village-section village-location" aria-labelledby="village-location-title">
       <div className="village-location__copy">
         <span>Vị trí và hành trình</span>
-        <h2 id="village-location-title">Ước Lễ trên bản đồ</h2>
+        <h2 id="village-location-title">{village.name} trên bản đồ</h2>
         {village.adminLocation && <p>{village.adminLocation}</p>}
         <Link className="village-button village-button--primary" to={APP_ROUTES.map}>Mở bản đồ di sản</Link>
       </div>
@@ -343,11 +343,11 @@ export function VillageMapSection({ village }: { village: VillageDetails }) {
   );
 }
 
-export function VillageCallToAction({ hasPanorama }: { hasPanorama: boolean }) {
+export function VillageCallToAction({ villageName, hasPanorama }: { villageName: string; hasPanorama: boolean }) {
   return (
     <section className="village-cta" aria-labelledby="village-cta-title">
       <p>Hành trình di sản</p>
-      <h2 id="village-cta-title">Bắt đầu khám phá không gian Làng Ước Lễ</h2>
+      <h2 id="village-cta-title">Bắt đầu khám phá không gian {villageName}</h2>
       <div>
         <Link className="village-button village-button--gold" to={APP_ROUTES.map}>Khám phá bản đồ di sản</Link>
         {hasPanorama && <Link className="village-button village-button--light" to={APP_ROUTES.panorama}>Trải nghiệm 360°</Link>}
