@@ -50,14 +50,14 @@
 -- 0. Bootstrap village "Làng Cự Đà" nếu chưa có
 -- ============================================================
 
--- slug 'lang-cu-da' tính tay theo đúng quy tắc slugifyVietnamese() trong
+-- slug 'cu-da' tính tay theo đúng quy tắc slugifyVietnamese() trong
 -- map-tour/server/src/lib/slugify.ts (bỏ dấu, đ/Đ -> d, hạ chữ thường), vì
 -- cột này NOT NULL + UNIQUE từ migration 005 và không có hàm slug ở tầng DB.
 INSERT INTO villages (id, name, slug, aliases, admin_location, google_maps_link, founded_period, main_occupations)
 SELECT
   '01000000-0000-0000-0000-000000000001',
-  'Làng Cự Đà',
-  'lang-cu-da',
+  'Cự Đà',
+  'cu-da',
   ARRAY['làng Ngô Khê'],
   'Xã Bình Minh, Hà Nội (trước là xã Cự Khê, huyện Thanh Oai, Hà Nội)',
   'https://maps.app.goo.gl/PHsLhJtDrLmiW9i2A',
