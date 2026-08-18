@@ -96,11 +96,12 @@ function ensurePmtilesProtocol() {
   protocolRegistered = true;
 }
 
-// OSM Bright's default beige-on-beige palette makes the sparse village-level
-// OpenMapTiles features look like an empty canvas. Keep the full style and
-// only strengthen the locally important basemap layers.
+// OSM Bright's village-level filters and beige-on-beige palette can make a
+// valid but sparse z14 OpenMapTiles tile look empty. Keep the full style, then
+// add a small set of deterministic layers whose source-layers are verified in
+// vietnam.pmtiles so roads, water, buildings and labels remain unmistakable.
 function visibleBasemapLayers(style: StyleSpecification): StyleSpecification['layers'] {
-  return style.layers.map((layer) => {
+  const layers = style.layers.map((layer) => {
     const sourceLayer = 'source-layer' in layer ? layer['source-layer'] : undefined;
 
     if (layer.type === 'background') {
@@ -123,6 +124,89 @@ function visibleBasemapLayers(style: StyleSpecification): StyleSpecification['la
     }
     return layer;
   }) as StyleSpecification['layers'];
+
+  return [
+    ...layers,
+    {
+      id: 'tour-basemap-landuse',
+      type: 'fill',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'landuse',
+      paint: { 'fill-color': '#dfe4c8', 'fill-opacity': 0.65 },
+    },
+    {
+      id: 'tour-basemap-water',
+      type: 'fill',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'water',
+      paint: { 'fill-color': '#83bdc6', 'fill-opacity': 0.9 },
+    },
+    {
+      id: 'tour-basemap-waterways',
+      type: 'line',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'waterway',
+      paint: {
+        'line-color': '#4f96a3',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1.5, 18, 5],
+      },
+    },
+    {
+      id: 'tour-basemap-buildings',
+      type: 'fill',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'building',
+      minzoom: 13,
+      paint: { 'fill-color': '#cda98f', 'fill-outline-color': '#8f6a55', 'fill-opacity': 0.9 },
+    },
+    {
+      id: 'tour-basemap-roads-casing',
+      type: 'line',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'transportation',
+      paint: {
+        'line-color': '#8f6f5e',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 12, 2.5, 14, 5, 18, 14],
+      },
+    },
+    {
+      id: 'tour-basemap-roads',
+      type: 'line',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'transportation',
+      paint: {
+        'line-color': '#fffaf4',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1.2, 14, 3, 18, 9],
+      },
+    },
+    {
+      id: 'tour-basemap-road-labels',
+      type: 'symbol',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'transportation_name',
+      minzoom: 13,
+      layout: {
+        'symbol-placement': 'line',
+        'text-field': ['coalesce', ['get', 'name:vi'], ['get', 'name']],
+        'text-font': ['Noto Sans Regular'],
+        'text-size': 12,
+      },
+      paint: { 'text-color': '#4d3429', 'text-halo-color': '#fffaf4', 'text-halo-width': 1.5 },
+    },
+    {
+      id: 'tour-basemap-place-labels',
+      type: 'symbol',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'place',
+      minzoom: 10,
+      layout: {
+        'text-field': ['coalesce', ['get', 'name:vi'], ['get', 'name']],
+        'text-font': ['Noto Sans Bold'],
+        'text-size': 13,
+      },
+      paint: { 'text-color': '#4d3429', 'text-halo-color': '#fffaf4', 'text-halo-width': 1.5 },
+    },
+  ] as StyleSpecification['layers'];
 }
 
 function closedRing(boundary: LatLng[]): [number, number][] {
