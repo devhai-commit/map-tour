@@ -96,6 +96,35 @@ function ensurePmtilesProtocol() {
   protocolRegistered = true;
 }
 
+// OSM Bright's default beige-on-beige palette makes the sparse village-level
+// OpenMapTiles features look like an empty canvas. Keep the full style and
+// only strengthen the locally important basemap layers.
+function visibleBasemapLayers(style: StyleSpecification): StyleSpecification['layers'] {
+  return style.layers.map((layer) => {
+    const sourceLayer = 'source-layer' in layer ? layer['source-layer'] : undefined;
+
+    if (layer.type === 'background') {
+      return { ...layer, paint: { ...layer.paint, 'background-color': '#f4eadf' } };
+    }
+    if (layer.type === 'line' && sourceLayer === 'transportation' && layer.id.includes('casing')) {
+      return { ...layer, paint: { ...layer.paint, 'line-color': '#9b7664', 'line-opacity': 1 } };
+    }
+    if (layer.type === 'line' && sourceLayer === 'waterway') {
+      return { ...layer, paint: { ...layer.paint, 'line-color': '#5e9faa' } };
+    }
+    if (layer.type === 'fill' && sourceLayer === 'water') {
+      return { ...layer, paint: { ...layer.paint, 'fill-color': '#8fc6cc' } };
+    }
+    if (layer.type === 'fill' && sourceLayer === 'building') {
+      return {
+        ...layer,
+        paint: { ...layer.paint, 'fill-color': '#d8b8a0', 'fill-outline-color': '#a98169' },
+      };
+    }
+    return layer;
+  }) as StyleSpecification['layers'];
+}
+
 function closedRing(boundary: LatLng[]): [number, number][] {
   const ring = boundary.map(toLngLat);
   const [firstLng, firstLat] = ring[0];
@@ -315,6 +344,7 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama, direction
     const pmtilesUrl = new URL('/tiles/vietnam.pmtiles', window.location.origin).href;
     const style: StyleSpecification = {
       ...(osmBrightStyle as StyleSpecification),
+      layers: visibleBasemapLayers(osmBrightStyle as StyleSpecification),
       sources: {
         [PMTILES_SOURCE_ID]: {
           type: 'vector',
