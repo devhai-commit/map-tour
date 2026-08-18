@@ -5,3 +5,5 @@ dist
 
 # Large binary map data — too big for git, distribute separately (see README).
 public/tiles/*.pmtiles
+public/tiles/*.mbtiles
+public/tiles/*:Zone.Identifier

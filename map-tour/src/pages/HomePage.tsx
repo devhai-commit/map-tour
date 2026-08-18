@@ -86,7 +86,7 @@ export function HomePage() {
         <div className="home__featured-grid">
           {sites.map((site) => (
             <article key={site.id} className="home__featured-card">
-              {site.cover && (
+              {site.cover ? (
                 <img
                   className="home__featured-image"
                   src={site.cover.url}
@@ -96,6 +96,15 @@ export function HomePage() {
                   width={800}
                   height={600}
                 />
+              ) : (
+                <div
+                  className={`home__featured-placeholder home__featured-placeholder--${site.kind}`}
+                  role="img"
+                  aria-label={`Chưa có ảnh đại diện cho ${site.name}`}
+                >
+                  <span aria-hidden="true">{site.name.charAt(0)}</span>
+                  <small>Chưa có ảnh đại diện</small>
+                </div>
               )}
               <div className="home__featured-body">
                 <span className={`home__featured-badge home__featured-badge--${site.kind}`}>

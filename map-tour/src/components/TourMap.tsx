@@ -6,9 +6,11 @@ import {
   Popup,
   LngLatBounds,
   addProtocol,
+  setWorkerUrl,
   type GeoJSONSource,
   type MapLayerMouseEvent,
 } from 'maplibre-gl';
+import mapLibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import { Protocol } from 'pmtiles';
 import type { StyleSpecification } from 'maplibre-gl';
 import osmBrightStyle from '../assets/map/osm-bright-style.json';
@@ -32,6 +34,11 @@ const ROUTE_LINE_LAYER_ID = 'tour-route-line';
 // both can be visible at once without one overwriting the other's data.
 const DIRECTIONS_SOURCE_ID = 'tour-directions';
 const DIRECTIONS_LINE_LAYER_ID = 'tour-directions-line';
+
+// MapLibre v6 loads its module worker as a sibling of the application bundle
+// by default. Importing it as a Vite URL makes the worker part of the
+// production artifact and gives MapLibre the hashed deploy URL explicitly.
+setWorkerUrl(mapLibreWorkerUrl);
 
 // Icon badges and their label pills are a fixed screen-pixel size, so below
 // this zoom a small area polygon can shrink to fewer screen-pixels than the
@@ -57,12 +64,12 @@ const MARKER_LABEL_GAP = 6;
 // them, following the narrative order: gate -> đình -> chùa -> giếng ->
 // old-village cluster -> craft-village cluster.
 const TOUR_ROUTE_SITE_IDS = [
-  'cong-lang-uoc-le',
-  'dinh-lang-uoc-le',
-  'chua-lang-uoc-le',
-  'gieng-lang',
-  'khu-lang-co',
-  'khu-lang-nghe-gio-cha',
+  '20000000-0000-0000-0000-000000000001',
+  '20000000-0000-0000-0000-000000000002',
+  '20000000-0000-0000-0000-000000000003',
+  '20000000-0000-0000-0000-000000000004',
+  '20000000-0000-0000-0000-000000000005',
+  '20000000-0000-0000-0000-000000000006',
 ];
 
 // Wraps the API's shaped route response (map-tour/server/src/routes/routing.ts,

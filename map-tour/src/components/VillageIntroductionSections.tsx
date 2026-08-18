@@ -187,9 +187,8 @@ function historyLabel(type: VillageDetails['history'][number]['type']) {
 }
 
 export function VillageCulture({ sites }: { sites: TourSite[] }) {
-  const featuredSites = sites.slice(0, 6);
   const { openPanorama } = usePanorama();
-  if (featuredSites.length === 0) return null;
+  if (sites.length === 0) return null;
 
   return (
     <section className="village-section" aria-labelledby="village-culture-title">
@@ -198,7 +197,7 @@ export function VillageCulture({ sites }: { sites: TourSite[] }) {
         <h2 id="village-culture-title">Di sản và không gian văn hóa</h2>
       </div>
       <div className="village-sites-grid">
-        {featuredSites.map((site) => (
+        {sites.map((site) => (
           <article className="village-site-card" key={site.id}>
             <div className="village-site-card__media">
               {site.cover ? (
@@ -219,9 +218,6 @@ export function VillageCulture({ sites }: { sites: TourSite[] }) {
           </article>
         ))}
       </div>
-      {sites.length > featuredSites.length && (
-        <div className="village-section__more"><Link to={APP_ROUTES.heritage}>Xem toàn bộ di sản →</Link></div>
-      )}
     </section>
   );
 }
