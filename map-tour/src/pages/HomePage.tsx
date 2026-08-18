@@ -1,7 +1,8 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSites } from '../context/SitesContext';
 import { usePanorama } from '../context/PanoramaContext';
 import { useVillage } from '../context/VillageContext';
+import { APP_ROUTES } from '../routes';
 
 interface ValueCard {
   title: string;
@@ -40,6 +41,9 @@ export function HomePage() {
           minh làng truyền thống vùng đồng bằng sông Hồng.
         </p>
         <div className="home__hero-actions">
+          <Link className="home__cta home__cta--story" to={APP_ROUTES.villageIntroduction}>
+            Giới thiệu về làng
+          </Link>
           <button type="button" className="home__cta home__cta--primary" onClick={() => navigate('map')}>
             Khám phá bản đồ
           </button>

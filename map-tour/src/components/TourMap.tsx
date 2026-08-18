@@ -458,9 +458,10 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama, direction
       map.remove();
       mapRef.current = null;
     };
-    // Mount-only: `sites` is static demo data for this app's lifetime.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // Sites arrive asynchronously from the active village API. Recreate the
+    // map when that dataset changes so markers and fitBounds are not frozen
+    // to the empty array from the first render.
+  }, [sites]);
 
   useEffect(() => {
     selectedIdRef.current = selectedId;
