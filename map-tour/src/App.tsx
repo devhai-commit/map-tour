@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { VillageLayout } from './components/VillageLayout';
 import { VillagesPortalPage } from './pages/VillagesPortalPage';
 import { HomePage } from './pages/HomePage';
@@ -23,6 +23,7 @@ export function App() {
       <Suspense fallback={<p className="app__route-loading">Đang tải...</p>}>
         <Routes>
           <Route path="/" element={<VillagesPortalPage />} />
+          <Route path="/map" element={<Navigate to="/lang/lang-uoc-le/map" replace />} />
           <Route path="/lang/:villageSlug" element={<VillageLayout />}>
             <Route index element={<HomePage />} />
             <Route path={APP_ROUTES.villageIntroduction} element={<VillageIntroductionPage />} />
