@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePanorama } from '../context/PanoramaContext';
-import { APP_ROUTES } from '../routes';
+import { villageHeritagePath, villageMapPath, villagePanoramaPath } from '../routes';
 import type { TourSite, VillageDetails } from '../types';
 import { SafeImage } from './SafeImage';
 import { TourMap } from './TourMap';
@@ -20,14 +20,14 @@ export function VillageHero({ village }: { village: VillageDetails }) {
         {village.aliases.length > 0 && <p className="village-hero__alias">Còn được gọi là {village.aliases.join(', ')}</p>}
         {village.currentAdminLocation && <p className="village-hero__location">⌖ {village.currentAdminLocation}</p>}
         <div className="village-hero__actions">
-          <Link className="village-button village-button--gold" to={APP_ROUTES.heritage}>
+          <Link className="village-button village-button--gold" to={villageHeritagePath(village.slug)}>
             Khám phá di sản
           </Link>
-          <Link className="village-button village-button--light" to={APP_ROUTES.map}>
+          <Link className="village-button village-button--light" to={villageMapPath(village.slug)}>
             Xem trên bản đồ
           </Link>
           {village.statistics.panoramaCount > 0 && (
-            <Link className="village-button village-button--light" to={APP_ROUTES.panorama}>
+            <Link className="village-button village-button--light" to={villagePanoramaPath(village.slug)}>
               Trải nghiệm 360°
             </Link>
           )}
@@ -104,10 +104,10 @@ export function VillageNameMeaning({ village }: { village: VillageDetails }) {
   if (!village.nameMeaning) return null;
   return (
     <section className="village-section village-name-meaning" aria-labelledby="village-name-title">
-      <div className="village-name-meaning__mark" aria-hidden="true">Ước · Lễ</div>
+      <div className="village-name-meaning__mark" aria-hidden="true">{village.name.split(/\s+/).join(' · ')}</div>
       <div>
         <span>Theo tư liệu khảo sát</span>
-        <h2 id="village-name-title">Danh xưng Ước Lễ</h2>
+        <h2 id="village-name-title">Danh xưng {village.name}</h2>
         <blockquote>{village.nameMeaning}</blockquote>
       </div>
     </section>
@@ -145,7 +145,7 @@ export function VillageCulturalStories({ village }: { village: VillageDetails })
     <section className="village-section" aria-labelledby="village-cultural-stories-title">
       <div className="village-section__heading village-section__heading--center">
         <span>Nếp làng còn lưu giữ</span>
-        <h2 id="village-cultural-stories-title">Phong tục và nghĩa tình Ước Lễ</h2>
+        <h2 id="village-cultural-stories-title">Phong tục và nghĩa tình {village.name}</h2>
       </div>
       <div className="village-story-grid">
         {village.customs.map((story) => <VillageStoryCard key={story.id} story={story} tone="gold" />)}
@@ -186,10 +186,9 @@ function historyLabel(type: VillageDetails['history'][number]['type']) {
   return { lich_su: 'Lịch sử', su_kien: 'Sự kiện', phong_tuc: 'Phong tục', truyen_thuyet: 'Truyền thuyết' }[type];
 }
 
-export function VillageCulture({ sites }: { sites: TourSite[] }) {
-  const featuredSites = sites.slice(0, 6);
+export function VillageCulture({ sites, villageSlug }: { sites: TourSite[]; villageSlug: string }) {
   const { openPanorama } = usePanorama();
-  if (featuredSites.length === 0) return null;
+  if (sites.length === 0) return null;
 
   return (
     <section className="village-section" aria-labelledby="village-culture-title">
@@ -198,7 +197,7 @@ export function VillageCulture({ sites }: { sites: TourSite[] }) {
         <h2 id="village-culture-title">Di sản và không gian văn hóa</h2>
       </div>
       <div className="village-sites-grid">
-        {featuredSites.map((site) => (
+        {sites.map((site) => (
           <article className="village-site-card" key={site.id}>
             <div className="village-site-card__media">
               {site.cover ? (
@@ -212,16 +211,13 @@ export function VillageCulture({ sites }: { sites: TourSite[] }) {
               <h3>{site.name}</h3>
               {site.description && <p>{site.description}</p>}
               <div className="village-site-card__actions">
-                <Link to={`${APP_ROUTES.map}?site=${site.id}`}>Xem trên bản đồ</Link>
+                <Link to={`${villageMapPath(villageSlug)}?site=${site.id}`}>Xem trên bản đồ</Link>
                 {site.panorama && <button type="button" onClick={() => openPanorama(site.id)}>Xem 360°</button>}
               </div>
             </div>
           </article>
         ))}
       </div>
-      {sites.length > featuredSites.length && (
-        <div className="village-section__more"><Link to={APP_ROUTES.heritage}>Xem toàn bộ di sản →</Link></div>
-      )}
     </section>
   );
 }
@@ -236,7 +232,7 @@ export function TraditionalCraft({ village }: { village: VillageDetails }) {
       {craftSite?.cover && <SafeImage src={craftSite.cover.url} alt={craftSite.name} className="village-craft__image" />}
       <div className="village-craft__content">
         <span>Nghề truyền thống</span>
-        <h2 id="village-craft-title">Nghề làm giò chả</h2>
+        <h2 id="village-craft-title">Nghề truyền thống {village.name}</h2>
         {village.traditionalCraft ? <TextParagraphs text={village.traditionalCraft} /> : craftSite?.description && <p>{craftSite.description}</p>}
         {village.mainOccupations.length > 0 && (
           <ul>{village.mainOccupations.map((occupation) => <li key={occupation}>{occupation}</li>)}</ul>
@@ -248,7 +244,7 @@ export function TraditionalCraft({ village }: { village: VillageDetails }) {
             {product.processDescription && <p>{product.processDescription}</p>}
           </article>
         ))}
-        {craftSite && <Link to={`${APP_ROUTES.map}?site=${craftSite.id}`}>Khám phá khu làng nghề →</Link>}
+        {craftSite && <Link to={`${villageMapPath(village.slug)}?site=${craftSite.id}`}>Khám phá khu làng nghề →</Link>}
       </div>
     </section>
   );
@@ -312,7 +308,7 @@ export function VillageGallery({ village }: { village: VillageDetails }) {
   return (
     <section className="village-section" aria-labelledby="village-gallery-title">
       <div className="village-section__heading">
-        <span>Góc nhìn Ước Lễ</span>
+        <span>Góc nhìn {village.name}</span>
         <h2 id="village-gallery-title">Thư viện hình ảnh</h2>
       </div>
       <div className="village-gallery">
@@ -336,9 +332,9 @@ export function VillageMapSection({ village }: { village: VillageDetails }) {
     <section className="village-section village-location" aria-labelledby="village-location-title">
       <div className="village-location__copy">
         <span>Vị trí và hành trình</span>
-        <h2 id="village-location-title">Ước Lễ trên bản đồ</h2>
+        <h2 id="village-location-title">{village.name} trên bản đồ</h2>
         {village.adminLocation && <p>{village.adminLocation}</p>}
-        <Link className="village-button village-button--primary" to={APP_ROUTES.map}>Mở bản đồ di sản</Link>
+        <Link className="village-button village-button--primary" to={villageMapPath(village.slug)}>Mở bản đồ di sản</Link>
       </div>
       <div className="village-location__map" aria-label={`Bản đồ ${village.name}`}>
         <TourMap sites={village.sites} selectedId={selectedId} onSelect={setSelectedId} onOpenPanorama={openPanorama} />
@@ -347,14 +343,22 @@ export function VillageMapSection({ village }: { village: VillageDetails }) {
   );
 }
 
-export function VillageCallToAction({ hasPanorama }: { hasPanorama: boolean }) {
+export function VillageCallToAction({
+  villageName,
+  villageSlug,
+  hasPanorama,
+}: {
+  villageName: string;
+  villageSlug: string;
+  hasPanorama: boolean;
+}) {
   return (
     <section className="village-cta" aria-labelledby="village-cta-title">
       <p>Hành trình di sản</p>
-      <h2 id="village-cta-title">Bắt đầu khám phá không gian Làng Ước Lễ</h2>
+      <h2 id="village-cta-title">Bắt đầu khám phá không gian {villageName}</h2>
       <div>
-        <Link className="village-button village-button--gold" to={APP_ROUTES.map}>Khám phá bản đồ di sản</Link>
-        {hasPanorama && <Link className="village-button village-button--light" to={APP_ROUTES.panorama}>Trải nghiệm 360°</Link>}
+        <Link className="village-button village-button--gold" to={villageMapPath(villageSlug)}>Khám phá bản đồ di sản</Link>
+        {hasPanorama && <Link className="village-button village-button--light" to={villagePanoramaPath(villageSlug)}>Trải nghiệm 360°</Link>}
       </div>
     </section>
   );
