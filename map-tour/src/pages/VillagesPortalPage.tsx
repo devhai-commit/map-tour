@@ -66,7 +66,7 @@ export function VillagesPortalPage() {
         )}
         <div className="portal__village-grid">
           {villages.map((village) => (
-            <Link key={village.id} to={`/lang/${village.slug}`} className="portal__village-card">
+            <Link key={village.id} to={`/lang/${village.slug}/gioi-thieu`} className="portal__village-card">
               {village.coverUrl && (
                 <img
                   className="portal__village-image"

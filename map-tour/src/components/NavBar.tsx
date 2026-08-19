@@ -2,7 +2,9 @@ import { NavLink } from 'react-router-dom';
 import { useVillage } from '../context/VillageContext';
 
 const NAV_ITEMS: Array<{ to: string; label: string; end?: boolean }> = [
-  { to: '.', label: 'Trang chủ', end: true },
+  { to: '/', label: 'Trang chủ', end: true },
+  { to: '.', label: 'Trang làng', end: true },
+  { to: 'gioi-thieu', label: 'Giới thiệu' },
   { to: 'map', label: 'Bản đồ' },
   { to: 'di-san', label: 'Danh sách di sản' },
   { to: '360', label: 'Trải nghiệm 360°' },
@@ -28,9 +30,6 @@ export function NavBar() {
               {item.label}
             </NavLink>
           ))}
-          <NavLink to="/" className="nav-bar__link nav-bar__link--back">
-            ← Tất cả làng nghề
-          </NavLink>
         </nav>
       </div>
     </header>

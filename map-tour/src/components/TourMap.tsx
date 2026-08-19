@@ -6,9 +6,11 @@ import {
   Popup,
   LngLatBounds,
   addProtocol,
+  setWorkerUrl,
   type GeoJSONSource,
   type MapLayerMouseEvent,
 } from 'maplibre-gl';
+import mapLibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import { Protocol } from 'pmtiles';
 import type { StyleSpecification } from 'maplibre-gl';
 import osmBrightStyle from '../assets/map/osm-bright-style.json';
@@ -32,6 +34,11 @@ const ROUTE_LINE_LAYER_ID = 'tour-route-line';
 // both can be visible at once without one overwriting the other's data.
 const DIRECTIONS_SOURCE_ID = 'tour-directions';
 const DIRECTIONS_LINE_LAYER_ID = 'tour-directions-line';
+
+// MapLibre v6 loads its module worker as a sibling of the application bundle
+// by default. Importing it as a Vite URL makes the worker part of the
+// production artifact and gives MapLibre the hashed deploy URL explicitly.
+setWorkerUrl(mapLibreWorkerUrl);
 
 // Icon badges and their label pills are a fixed screen-pixel size, so below
 // this zoom a small area polygon can shrink to fewer screen-pixels than the
@@ -57,12 +64,12 @@ const MARKER_LABEL_GAP = 6;
 // them, following the narrative order: gate -> đình -> chùa -> giếng ->
 // old-village cluster -> craft-village cluster.
 const TOUR_ROUTE_SITE_IDS = [
-  'cong-lang-uoc-le',
-  'dinh-lang-uoc-le',
-  'chua-lang-uoc-le',
-  'gieng-lang',
-  'khu-lang-co',
-  'khu-lang-nghe-gio-cha',
+  '20000000-0000-0000-0000-000000000001',
+  '20000000-0000-0000-0000-000000000002',
+  '20000000-0000-0000-0000-000000000003',
+  '20000000-0000-0000-0000-000000000004',
+  '20000000-0000-0000-0000-000000000005',
+  '20000000-0000-0000-0000-000000000006',
 ];
 
 // Wraps the API's shaped route response (map-tour/server/src/routes/routing.ts,
@@ -87,6 +94,119 @@ function ensurePmtilesProtocol() {
   const protocol = new Protocol();
   addProtocol('pmtiles', protocol.tile);
   protocolRegistered = true;
+}
+
+// OSM Bright's village-level filters and beige-on-beige palette can make a
+// valid but sparse z14 OpenMapTiles tile look empty. Keep the full style, then
+// add a small set of deterministic layers whose source-layers are verified in
+// vietnam.pmtiles so roads, water, buildings and labels remain unmistakable.
+function visibleBasemapLayers(style: StyleSpecification): StyleSpecification['layers'] {
+  const layers = style.layers.map((layer) => {
+    const sourceLayer = 'source-layer' in layer ? layer['source-layer'] : undefined;
+
+    if (layer.type === 'background') {
+      return { ...layer, paint: { ...layer.paint, 'background-color': '#f4eadf' } };
+    }
+    if (layer.type === 'line' && sourceLayer === 'transportation' && layer.id.includes('casing')) {
+      return { ...layer, paint: { ...layer.paint, 'line-color': '#9b7664', 'line-opacity': 1 } };
+    }
+    if (layer.type === 'line' && sourceLayer === 'waterway') {
+      return { ...layer, paint: { ...layer.paint, 'line-color': '#5e9faa' } };
+    }
+    if (layer.type === 'fill' && sourceLayer === 'water') {
+      return { ...layer, paint: { ...layer.paint, 'fill-color': '#8fc6cc' } };
+    }
+    if (layer.type === 'fill' && sourceLayer === 'building') {
+      return {
+        ...layer,
+        paint: { ...layer.paint, 'fill-color': '#d8b8a0', 'fill-outline-color': '#a98169' },
+      };
+    }
+    return layer;
+  }) as StyleSpecification['layers'];
+
+  return [
+    ...layers,
+    {
+      id: 'tour-basemap-landuse',
+      type: 'fill',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'landuse',
+      paint: { 'fill-color': '#dfe4c8', 'fill-opacity': 0.65 },
+    },
+    {
+      id: 'tour-basemap-water',
+      type: 'fill',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'water',
+      paint: { 'fill-color': '#83bdc6', 'fill-opacity': 0.9 },
+    },
+    {
+      id: 'tour-basemap-waterways',
+      type: 'line',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'waterway',
+      paint: {
+        'line-color': '#4f96a3',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1.5, 18, 5],
+      },
+    },
+    {
+      id: 'tour-basemap-buildings',
+      type: 'fill',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'building',
+      minzoom: 13,
+      paint: { 'fill-color': '#cda98f', 'fill-outline-color': '#8f6a55', 'fill-opacity': 0.9 },
+    },
+    {
+      id: 'tour-basemap-roads-casing',
+      type: 'line',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'transportation',
+      paint: {
+        'line-color': '#8f6f5e',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 12, 2.5, 14, 5, 18, 14],
+      },
+    },
+    {
+      id: 'tour-basemap-roads',
+      type: 'line',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'transportation',
+      paint: {
+        'line-color': '#fffaf4',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1.2, 14, 3, 18, 9],
+      },
+    },
+    {
+      id: 'tour-basemap-road-labels',
+      type: 'symbol',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'transportation_name',
+      minzoom: 13,
+      layout: {
+        'symbol-placement': 'line',
+        'text-field': ['coalesce', ['get', 'name:vi'], ['get', 'name']],
+        'text-font': ['Noto Sans Regular'],
+        'text-size': 12,
+      },
+      paint: { 'text-color': '#4d3429', 'text-halo-color': '#fffaf4', 'text-halo-width': 1.5 },
+    },
+    {
+      id: 'tour-basemap-place-labels',
+      type: 'symbol',
+      source: PMTILES_SOURCE_ID,
+      'source-layer': 'place',
+      minzoom: 10,
+      layout: {
+        'text-field': ['coalesce', ['get', 'name:vi'], ['get', 'name']],
+        'text-font': ['Noto Sans Bold'],
+        'text-size': 13,
+      },
+      paint: { 'text-color': '#4d3429', 'text-halo-color': '#fffaf4', 'text-halo-width': 1.5 },
+    },
+  ] as StyleSpecification['layers'];
 }
 
 function closedRing(boundary: LatLng[]): [number, number][] {
@@ -300,14 +420,22 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama, direction
   const selectedIdRef = useRef<string | null>(selectedId);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || sites.length === 0) return;
 
     let disposed = false;
     ensurePmtilesProtocol();
 
+    // Put the initial viewport inside the PMTiles archive before MapLibre
+    // starts loading the style. Waiting for the style's `load` event to fit
+    // the sites can leave the map at MapLibre's [0, 0] default, outside the
+    // Vietnam source bounds, and prevent the tile load needed to reach that
+    // event in some browsers.
+    const initialBounds = siteBounds(sites)!;
+
     const pmtilesUrl = new URL('/tiles/vietnam.pmtiles', window.location.origin).href;
     const style: StyleSpecification = {
       ...(osmBrightStyle as StyleSpecification),
+      layers: visibleBasemapLayers(osmBrightStyle as StyleSpecification),
       sources: {
         [PMTILES_SOURCE_ID]: {
           type: 'vector',
@@ -322,6 +450,8 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama, direction
     const map = new MapLibreMap({
       container: containerRef.current,
       style,
+      bounds: initialBounds,
+      fitBoundsOptions: { padding: 48, duration: 0 },
     });
     mapRef.current = map;
     map.addControl(new NavigationControl(), 'top-right');
@@ -412,9 +542,6 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama, direction
       updateMarkers();
       map.on('move', updateMarkers);
 
-      const bounds = siteBounds(sites);
-      if (bounds) map.fitBounds(bounds, { padding: 48, duration: 0 });
-
       // Fetch the real walking route for the curated tour stops in the
       // background so it doesn't delay the rest of map setup above.
       const routeSites = TOUR_ROUTE_SITE_IDS.map((id) => sites.find((site) => site.id === id)).filter(
@@ -451,9 +578,10 @@ export function TourMap({ sites, selectedId, onSelect, onOpenPanorama, direction
       map.remove();
       mapRef.current = null;
     };
-    // Mount-only: `sites` is static demo data for this app's lifetime.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // Sites arrive asynchronously from the active village API. The guard at
+    // the start delays map creation until a non-empty dataset is available;
+    // recreate it if the active village later supplies a different dataset.
+  }, [sites]);
 
   useEffect(() => {
     selectedIdRef.current = selectedId;

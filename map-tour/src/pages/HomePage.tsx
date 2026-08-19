@@ -1,7 +1,8 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSites } from '../context/SitesContext';
 import { usePanorama } from '../context/PanoramaContext';
 import { useVillage } from '../context/VillageContext';
+import { APP_ROUTES } from '../routes';
 
 interface ValueCard {
   title: string;
@@ -40,6 +41,9 @@ export function HomePage() {
           minh làng truyền thống vùng đồng bằng sông Hồng.
         </p>
         <div className="home__hero-actions">
+          <Link className="home__cta home__cta--story" to={APP_ROUTES.villageIntroduction}>
+            Giới thiệu về làng
+          </Link>
           <button type="button" className="home__cta home__cta--primary" onClick={() => navigate('map')}>
             Khám phá bản đồ
           </button>
@@ -86,7 +90,7 @@ export function HomePage() {
         <div className="home__featured-grid">
           {sites.map((site) => (
             <article key={site.id} className="home__featured-card">
-              {site.cover && (
+              {site.cover ? (
                 <img
                   className="home__featured-image"
                   src={site.cover.url}
@@ -96,6 +100,15 @@ export function HomePage() {
                   width={800}
                   height={600}
                 />
+              ) : (
+                <div
+                  className={`home__featured-placeholder home__featured-placeholder--${site.kind}`}
+                  role="img"
+                  aria-label={`Chưa có ảnh đại diện cho ${site.name}`}
+                >
+                  <span aria-hidden="true">{site.name.charAt(0)}</span>
+                  <small>Chưa có ảnh đại diện</small>
+                </div>
               )}
               <div className="home__featured-body">
                 <span className={`home__featured-badge home__featured-badge--${site.kind}`}>
