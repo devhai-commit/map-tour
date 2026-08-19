@@ -16,7 +16,7 @@ import {
   VillageVideos,
 } from '../components/VillageIntroductionSections';
 import { fetchVillageDetails } from '../lib/api';
-import { APP_ROUTES } from '../routes';
+import { villageHomePath } from '../routes';
 import type { VillageDetails } from '../types';
 
 export function VillageIntroductionPage() {
@@ -70,7 +70,7 @@ export function VillageIntroductionPage() {
         <p>{error}</p>
         <div>
           <button type="button" onClick={retry}>Thử lại</button>
-          <Link to={APP_ROUTES.home}>Quay về trang chủ</Link>
+          <Link to={villageSlug ? villageHomePath(villageSlug) : '/'}>Quay về trang chủ</Link>
         </div>
       </div>
     );
@@ -80,7 +80,7 @@ export function VillageIntroductionPage() {
   return (
     <article className="village-page">
       <nav className="village-breadcrumb" aria-label="Đường dẫn trang">
-        <Link to={APP_ROUTES.home}>Trang chủ</Link><span aria-hidden="true">/</span><span>Giới thiệu {village.name}</span>
+        <Link to={villageHomePath(village.slug)}>Trang chủ</Link><span aria-hidden="true">/</span><span>Giới thiệu {village.name}</span>
       </nav>
       <VillageHero village={village} />
       <VillageQuickFacts village={village} />
@@ -90,11 +90,15 @@ export function VillageIntroductionPage() {
       <TraditionalCraft village={village} />
       <VillageCulturalStories village={village} />
       <VillageLandscape village={village} />
-      <VillageCulture sites={village.sites} />
+      <VillageCulture sites={village.sites} villageSlug={village.slug} />
       <VillageGallery village={village} />
       <VillageVideos village={village} />
       <VillageMapSection village={village} />
-      <VillageCallToAction villageName={village.name} hasPanorama={village.statistics.panoramaCount > 0} />
+      <VillageCallToAction
+        villageName={village.name}
+        villageSlug={village.slug}
+        hasPanorama={village.statistics.panoramaCount > 0}
+      />
       <footer className="village-page__footer">Dữ liệu giới thiệu được tổng hợp từ hồ sơ số hóa của {village.name}.</footer>
     </article>
   );
