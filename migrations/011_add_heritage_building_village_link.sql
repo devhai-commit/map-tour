@@ -21,10 +21,22 @@ ALTER TABLE heritage_buildings
 CREATE INDEX IF NOT EXISTS idx_heritage_buildings_village_id ON heritage_buildings (village_id);
 
 UPDATE heritage_buildings SET village_id = (SELECT id FROM villages WHERE slug = 'cu-da')
- WHERE id = ANY(ARRAY[
-     '26cdf372-1676-460e-a701-d4ef78a2aa4c', -- Đình làng Cự Đà
-     'd1bb8b84-46ae-4603-b27f-1bd9058f13c4', -- Nhà ông Mão
-     '4f9067b2-4b9f-4376-8788-3178f157fcf0', -- Chùa Cự Đà _ Linh Minh Tự
-     '0dcbc754-ab06-4144-b95c-909eddf28024'  -- Nhà ông Vũ Ngọc Giao
-   ]::uuid[])
+ WHERE name IN (
+     'Đình làng Cự Đà',
+     'Nhà ông Mão',
+     'nhà ông Mão',
+     'Chùa Cự Đà _ Linh Minh Tự',
+     'Nhà ông Vũ Ngọc Giao'
+   )
    AND village_id IS NULL;
+
+DO $$
+BEGIN
+  IF (SELECT count(*) FROM heritage_buildings hb
+      JOIN villages v ON v.id = hb.village_id
+      WHERE v.slug = 'cu-da'
+        AND hb.name IN ('Đình làng Cự Đà', 'Nhà ông Mão', 'nhà ông Mão',
+                        'Chùa Cự Đà _ Linh Minh Tự', 'Nhà ông Vũ Ngọc Giao')) <> 4 THEN
+    RAISE EXCEPTION 'Expected exactly four Cu Da heritage buildings after backfill';
+  END IF;
+END $$;

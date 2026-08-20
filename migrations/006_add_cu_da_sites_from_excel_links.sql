@@ -65,6 +65,12 @@ SELECT
   ARRAY['Nghề làm miến', 'Nghề làm tương']
 WHERE NOT EXISTS (SELECT 1 FROM villages WHERE slug = 'cu-da');
 
+-- Áp dụng phần dữ liệu đã được hiệu chỉnh cả khi village đã tồn tại.
+UPDATE villages
+   SET main_occupations = ARRAY['Nghề làm miến', 'Nghề làm tương']
+ WHERE slug = 'cu-da'
+   AND main_occupations IS DISTINCT FROM ARRAY['Nghề làm miến', 'Nghề làm tương']::text[];
+
 -- ============================================================
 -- 1. Thêm 23 điểm (point) từ các link Google Maps trong sheet "2."
 -- ============================================================
