@@ -37,7 +37,7 @@ export function VillagesPortalPage() {
     <div className="portal">
       <header className="portal__header">
         <Link to="/" className="portal__brand">
-          Làng Nghề Di Sản Việt Nam
+          Làng nghề di sản Việt Nam
         </Link>
       </header>
 

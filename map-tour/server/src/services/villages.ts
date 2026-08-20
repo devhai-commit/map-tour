@@ -67,6 +67,30 @@ interface VideoRow {
   attribution: string | null;
 }
 
+interface HeritageBuildingPhotoJson {
+  url: string;
+  kind: 'anh' | 'panorama';
+  caption: string | null;
+  attribution: string | null;
+}
+
+interface HeritageBuildingRow {
+  id: string;
+  name: string;
+  function: string | null;
+  heritage_rank: string | null;
+  heritage_rank_year: number | null;
+  built_period: string | null;
+  overall_structure_description: string | null;
+  cultural_historical_value: string | null;
+  land_area_m2: number | null;
+  floor_area_m2: number | null;
+  roof_material: string | null;
+  roof_color: string | null;
+  structure_material: string | null;
+  photos: HeritageBuildingPhotoJson[];
+}
+
 function media(url: string | null, attribution: string | null) {
   return url ? { url, attribution: attribution ?? undefined } : undefined;
 }
@@ -110,7 +134,7 @@ export async function findVillageDetailsBySlug(slug: string) {
   const village = villageResult.rows[0];
   if (!village) return null;
 
-  const [sitesResult, historyResult, craftResult, videosResult] = await Promise.all([
+  const [sitesResult, historyResult, craftResult, videosResult, heritageBuildingsResult] = await Promise.all([
     pool.query<VillageSiteRow>(
       `SELECT s.id, s.kind, s.name, s.category, s.short_description,
               v.name AS village_name, s.position_lat, s.position_lng, s.boundary,
@@ -148,6 +172,34 @@ export async function findVillageDetailsBySlug(slug: string) {
           AND owner_entity_id = $1
           AND kind = 'video'
         ORDER BY created_at, id`,
+      [village.id],
+    ),
+    pool.query<HeritageBuildingRow>(
+      `SELECT hb.id, hb.name, hb."function", hb.heritage_rank, hb.heritage_rank_year, hb.built_period,
+              hb.overall_structure_description, hb.cultural_historical_value,
+              hb.land_area_m2, hb.floor_area_m2,
+              td.roof_material, td.roof_color, td.structure_material,
+              photos.items AS photos
+         FROM heritage_buildings hb
+         LEFT JOIN heritage_building_technical_details td ON td.building_id = hb.id
+         LEFT JOIN LATERAL (
+           SELECT COALESCE(
+                    json_agg(
+                      json_build_object('url', m.url, 'kind', m.kind, 'caption', m.caption, 'attribution', m.attribution)
+                      -- Ranking-certificate/plaque photos ("ảnh công nhận di tích") are
+                      -- legitimate gallery content but make a poor cover/hero image (a
+                      -- document, not the building) — sort them after the rest rather
+                      -- than excluding them.
+                      ORDER BY (m.caption ~* 'xếp hạng|công nhận'), m.kind, m.created_at
+                    ),
+                    '[]'
+                  ) AS items
+             FROM media m
+            WHERE m.owner_entity_type = 'heritage_buildings' AND m.owner_entity_id = hb.id
+              AND m.kind IN ('anh', 'panorama')
+         ) photos ON true
+        WHERE hb.village_id = $1
+        ORDER BY hb.created_at, hb.name`,
       [village.id],
     ),
   ]);
@@ -219,6 +271,30 @@ export async function findVillageDetailsBySlug(slug: string) {
     sites,
     gallery,
     videos: videosResult.rows,
+    architectureHighlights: heritageBuildingsResult.rows.map((row) => {
+      const photos = row.photos
+        .filter((photo) => photo.kind === 'anh')
+        .map((photo) => ({ url: photo.url, caption: photo.caption, attribution: photo.attribution ?? undefined }));
+      const panoramaPhoto = row.photos.find((photo) => photo.kind === 'panorama');
+      return {
+        id: row.id,
+        name: row.name,
+        function: row.function,
+        heritageRank: row.heritage_rank,
+        heritageRankYear: row.heritage_rank_year,
+        builtPeriod: row.built_period,
+        overallStructureDescription: row.overall_structure_description,
+        culturalHistoricalValue: row.cultural_historical_value,
+        landAreaM2: row.land_area_m2,
+        floorAreaM2: row.floor_area_m2,
+        roofMaterial: row.roof_material,
+        roofColor: row.roof_color,
+        structureMaterial: row.structure_material,
+        cover: photos[0],
+        photos,
+        panorama: media(panoramaPhoto?.url ?? null, panoramaPhoto?.attribution ?? null),
+      };
+    }),
     statistics: {
       siteCount: sites.length,
       pointCount: sites.length - areaCount,

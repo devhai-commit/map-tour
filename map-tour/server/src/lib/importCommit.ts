@@ -68,6 +68,7 @@ async function upsertVillage(
 async function upsertHeritageBuilding(
   client: PoolClient,
   building: ParsedImport['heritageBuildings'][number],
+  villageId: string | null,
 ): Promise<string> {
   const existing = await client.query<{ id: string }>('SELECT id FROM heritage_buildings WHERE name = $1', [
     building.name,
@@ -85,6 +86,7 @@ async function upsertHeritageBuilding(
     building.overallStructureDescription,
     building.culturalHistoricalValue,
     building.builtPeriod,
+    villageId,
   ];
 
   let buildingId: string;
@@ -94,7 +96,8 @@ async function upsertHeritageBuilding(
       `UPDATE heritage_buildings SET
         address=$2, "function"=$3, ownership=$4, land_area_m2=$5, floor_area_m2=$6,
         heritage_rank=$7, heritage_rank_year=$8, heritage_style_type=$9, managing_unit=$10,
-        overall_structure_description=$11, cultural_historical_value=$12, built_period=$13
+        overall_structure_description=$11, cultural_historical_value=$12, built_period=$13,
+        village_id=COALESCE($14, village_id)
        WHERE id = $1`,
       [buildingId, ...values],
     );
@@ -103,8 +106,8 @@ async function upsertHeritageBuilding(
       `INSERT INTO heritage_buildings (
          name, address, "function", ownership, land_area_m2, floor_area_m2,
          heritage_rank, heritage_rank_year, heritage_style_type, managing_unit,
-         overall_structure_description, cultural_historical_value, built_period
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+         overall_structure_description, cultural_historical_value, built_period, village_id
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
        RETURNING id`,
       [building.name, ...values],
     );
@@ -340,7 +343,7 @@ export async function commitImport(pool: Pool, parsed: ParsedImport): Promise<Im
 
     const buildingIdByTempId = new Map<string, string>();
     for (const building of parsed.heritageBuildings) {
-      const id = await upsertHeritageBuilding(client, building);
+      const id = await upsertHeritageBuilding(client, building, villageId);
       buildingIdByTempId.set(building.tempId, id);
     }
 

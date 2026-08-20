@@ -24,8 +24,56 @@ import type {
   VillageInput,
 } from './importTypes.js';
 
-const BUILDING_SHEET = /^4\.(\d+)\.\s/;
-const DECORATIVE_SUB_SHEET = /^4\.(\d+)\.(\d+)/;
+// Optional trailing "." before the space: Phú Vinh's building sheets 4.2–4.5
+// drop the second period ("4.2 Kiến trúc...", not "4.2. Kiến trúc...") while
+// every other surveyed village keeps it — both must resolve to a building.
+const BUILDING_SHEET = /^4\.(\d+)\.?\s/;
+// Second segment may be a number (Cự Đà/Ước Lễ style "4.1.1") or a single
+// letter (Lang Cuu/Làng Chuông style "4.3.a") — only the first capture group
+// (building number) is ever used, so the segment's own value doesn't matter.
+const DECORATIVE_SUB_SHEET = /^4\.(\d+)\.([0-9]+|[a-zA-Z])/;
+// Combined decorative sheets named "5.N ..." (Phú Vinh) — N maps to the
+// building whose tempId ends in the same number.
+const FIVE_DOT_SHEET = /^5\.(\d+)/;
+
+type SheetRoleOverride =
+  | { role: 'building'; tempId: string }
+  | { role: 'decorative'; buildingTempId: string };
+
+// Hạ Thái is the one surveyed file whose "5." sheet family doesn't follow
+// the "5.N combined decorative -> building 4.N" convention used elsewhere:
+// its second heritage building sits at sheet "5.1." (not "4.x"), and that
+// building's OWN decorative sub-sheet is named "5.2" (same family, not a
+// "4.N.M" sub-sheet) — while its first building's decorative sub-sheet was
+// instead named "4.2. ..." (which otherwise looks exactly like a second
+// heritage-building sheet by name shape alone). None of this is derivable
+// from a general naming rule, so it's special-cased here by exact sheet name.
+const SHEET_ROLE_OVERRIDES: Record<string, Record<string, SheetRoleOverride>> = {
+  'Hạ Thái.xlsx': {
+    '4.2. Hiện vật- Mỹ thuật trang t': { role: 'decorative', buildingTempId: '4.1' },
+    '5.1. Kiến trúc nhà cổ bà Dịp': { role: 'building', tempId: '5.1' },
+    '5.2 Hiện vật-Mỹ thuật trang trí': { role: 'decorative', buildingTempId: '5.1' },
+  },
+};
+
+// Lang Cuu's 3 heritage-building sheets don't have a discoverable "Dữ
+// liệu"/"Nội dung" header via findDataColumn(): two ("4.4.", "4.5.") have no
+// header text at all in the scanned rows, and the third ("4.3.") repeats
+// "Nội dung" in BOTH the label column (2) and the real data column (3),
+// which findDataColumn resolves to the first (wrong) occurrence. All 3 share
+// the same actual layout (col 2 = field label, col 3 = value) confirmed by
+// reading the raw cells, so the header position is forced here instead.
+const FORCED_HEADER: Record<string, Record<string, { headerRow: number; dataCol: number }>> = {
+  'Lang Cuu.xlsx': {
+    '4.3. Nhà thờ họ': { headerRow: 1, dataCol: 3 },
+    '4.4. Nhà bác Tứ': { headerRow: 1, dataCol: 3 },
+    '4.5. Nhà Tây': { headerRow: 1, dataCol: 3 },
+  },
+};
+
+function labeledRowsFor(worksheet: Worksheet, sourceFileName: string, name: string): LabeledRow[] {
+  return extractLabeledRows(worksheet, FORCED_HEADER[sourceFileName]?.[name]);
+}
 
 function findRow(rows: LabeledRow[], predicate: (row: LabeledRow) => boolean): LabeledRow | undefined {
   return rows.find(predicate);
@@ -274,10 +322,24 @@ export function parseWorkbook(workbook: Workbook, sourceFileName: string): Parse
   const decorativeArtItems: DecorativeArtItemInput[] = [];
   const intangibleHeritageItems: IntangibleHeritageItemInput[] = [];
   const craftProducts: CraftProductInput[] = [];
+  const craftProductCandidates: Array<{ product: CraftProductInput; businessName: string | null }> = [];
   const combinedDecorativeSheets: Worksheet[] = [];
 
   for (const worksheet of workbook.worksheets) {
     const name = worksheet.name.trim();
+
+    const override = SHEET_ROLE_OVERRIDES[sourceFileName]?.[name];
+    if (override) {
+      const rows = extractLabeledRows(worksheet);
+      if (override.role === 'building') {
+        const building = parseHeritageBuilding(rows, override.tempId);
+        if (building) heritageBuildings.push(building);
+        else warnings.push(`Sheet "${worksheet.name}": không tìm thấy "Tên" công trình, bỏ qua.`);
+      } else {
+        decorativeArtItems.push(...parseDecorativeArtItems(rows, override.buildingTempId));
+      }
+      continue;
+    }
 
     if (/^1\./.test(name)) {
       const rows = extractLabeledRows(worksheet);
@@ -310,7 +372,7 @@ export function parseWorkbook(workbook: Workbook, sourceFileName: string): Parse
 
     const buildingMatch = name.match(BUILDING_SHEET);
     if (buildingMatch) {
-      const rows = extractLabeledRows(worksheet);
+      const rows = labeledRowsFor(worksheet, sourceFileName, name);
       const tempId = `4.${buildingMatch[1]}`;
       const building = parseHeritageBuilding(rows, tempId);
       if (building) heritageBuildings.push(building);
@@ -333,8 +395,9 @@ export function parseWorkbook(workbook: Workbook, sourceFileName: string): Parse
       const rows = extractLabeledRows(worksheet);
       const fallbackName = name.replace(/^7(\.\d+)?\.?\s*/, '').trim();
       const product = parseCraftProduct(rows, fallbackName);
-      if (product) craftProducts.push(product);
-      else warnings.push(`Sheet "${worksheet.name}": không tìm thấy "Tên sản phẩm", bỏ qua.`);
+      if (product) {
+        craftProductCandidates.push({ product, businessName: valueByLastSegment(rows, 'Hộ kinh doanh/ Nhà sản xuất') });
+      } else warnings.push(`Sheet "${worksheet.name}": không tìm thấy "Tên sản phẩm", bỏ qua.`);
       continue;
     }
 
@@ -342,9 +405,12 @@ export function parseWorkbook(workbook: Workbook, sourceFileName: string): Parse
     // mapping exists for this yet (see docs/thiet-ke-csdl.md §5) — skipped.
   }
 
-  // Sheet 5 doesn't record which building each decorative item belongs to —
-  // default to the first parsed building; the review UI lets an admin
-  // reassign before commit.
+  // Sheet "5.N ..." doesn't record which building it belongs to by field
+  // content, only by its own sheet number (Phú Vinh: "5.1"/"5.2" -> buildings
+  // "4.1"/"4.2") — match N against each building's tempId suffix. Falls back
+  // to the first parsed building (Ước Lễ's single un-numbered "5." sheet, or
+  // any file where no building's tempId ends in that number) same as before;
+  // the review UI lets an admin reassign before commit either way.
   if (combinedDecorativeSheets.length > 0) {
     const defaultBuildingTempId = heritageBuildings[0]?.tempId ?? '';
     if (!defaultBuildingTempId) {
@@ -352,12 +418,46 @@ export function parseWorkbook(workbook: Workbook, sourceFileName: string): Parse
     } else {
       for (const worksheet of combinedDecorativeSheets) {
         const rows = extractLabeledRows(worksheet);
-        decorativeArtItems.push(...parseDecorativeArtItems(rows, defaultBuildingTempId));
+        const sheetNumberMatch = worksheet.name.trim().match(FIVE_DOT_SHEET);
+        const matchedBuilding = sheetNumberMatch
+          ? heritageBuildings.find((building) => building.tempId.endsWith(`.${sheetNumberMatch[1]}`))
+          : undefined;
+        const buildingTempId = matchedBuilding?.tempId ?? defaultBuildingTempId;
+        decorativeArtItems.push(...parseDecorativeArtItems(rows, buildingTempId));
+        if (!matchedBuilding) {
+          warnings.push(
+            `Đề tài mỹ thuật trang trí (sheet "${worksheet.name}") không xác định được công trình theo số thứ tự — gán mặc định vào công trình đầu tiên, kiểm tra lại trước khi xác nhận.`,
+          );
+        }
       }
-      warnings.push(
-        `Đề tài mỹ thuật trang trí (sheet "5.") được gán mặc định vào công trình đầu tiên — kiểm tra lại trước khi xác nhận.`,
-      );
     }
+  }
+
+  // commitImport upserts craft_products by (village_id, name), so two "7."
+  // sheets that happen to name their product the same way (Lang Cuu, Làng
+  // Chuông: 2 different producers both selling under one shared product
+  // name) would otherwise silently collapse into a single row. Disambiguate
+  // using the producer/business name only when a real collision exists —
+  // Cự Đà/Ước Lễ's products already have unique names, so this is a no-op
+  // there.
+  const candidatesByName = new Map<string, typeof craftProductCandidates>();
+  for (const candidate of craftProductCandidates) {
+    const group = candidatesByName.get(candidate.product.name) ?? [];
+    group.push(candidate);
+    candidatesByName.set(candidate.product.name, group);
+  }
+  for (const [productName, group] of candidatesByName) {
+    if (group.length === 1) {
+      craftProducts.push(group[0].product);
+      continue;
+    }
+    for (const candidate of group) {
+      if (candidate.businessName) candidate.product.name = `${candidate.product.name} — ${candidate.businessName}`;
+      craftProducts.push(candidate.product);
+    }
+    warnings.push(
+      `Có ${group.length} sản phẩm trùng tên "${productName}" — đã phân biệt theo tên hộ kinh doanh/nhà sản xuất (nếu có), kiểm tra lại trước khi xác nhận.`,
+    );
   }
 
   return {

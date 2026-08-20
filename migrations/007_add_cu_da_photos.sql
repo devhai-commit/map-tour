@@ -158,16 +158,16 @@ SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-11.jpg', 'anh
 WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-11.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-12.jpeg', 'anh', 'Các bộ phận, chi tiết đặc biệt', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-12.jpeg');
+SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-12.jpg', 'anh', 'Các bộ phận, chi tiết đặc biệt', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-12.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-13.jpeg', 'anh', 'Các bộ phận, chi tiết đặc biệt', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-13.jpeg');
+SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-13.jpg', 'anh', 'Các bộ phận, chi tiết đặc biệt', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-13.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-14.jpeg', 'anh', 'Các bộ phận, chi tiết đặc biệt', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-14.jpeg');
+SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-14.jpg', 'anh', 'Các bộ phận, chi tiết đặc biệt', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-14.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
 SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-15.jpg', 'anh', 'Mái_cấu tạo', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
@@ -194,36 +194,36 @@ SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-2.jpg', 'anh'
 WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-2.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-21.jpeg', 'anh', 'Gian 1', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-21.jpeg');
+SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-21.jpg', 'anh', 'Gian 1', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-21.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-22.jpeg', 'anh', 'Gian 2', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-22.jpeg');
+SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-22.jpg', 'anh', 'Gian 2', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-22.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-23.jpeg', 'anh', 'Gian 3', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-23.jpeg');
+SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-23.jpg', 'anh', 'Gian 3', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-23.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-24.jpeg', 'anh', 'Gian 4', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-24.jpeg');
+SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-24.jpg', 'anh', 'Gian 4', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-24.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-25.jpeg', 'anh', 'Gian 5', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-25.jpeg');
+SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-25.jpg', 'anh', 'Gian 5', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-25.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-26.jpeg', 'anh', 'Kết cấu ảnh — Tổng thể bộ vì nóc', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-26.jpeg');
+SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-26.jpg', 'anh', 'Kết cấu ảnh — Tổng thể bộ vì nóc', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-26.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-27.jpeg', 'anh', 'Kết cấu ảnh — Bộ vì nách', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-27.jpeg');
+SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-27.jpg', 'anh', 'Kết cấu ảnh — Bộ vì nách', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-27.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-28.jpeg', 'anh', 'Kết cấu ảnh — Bộ vì nách', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-28.jpeg');
+SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-28.jpg', 'anh', 'Kết cấu ảnh — Bộ vì nách', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-28.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
 SELECT '/cu-da/heritage-buildings/chua-cu-da-linh-minh-tu-4f9067b2-29.png', 'anh', 'Chân tảng ảnh — Chân tảng', 'heritage_buildings', (SELECT id FROM heritage_buildings WHERE name = 'Chùa Cự Đà _ Linh Minh Tự')
@@ -562,8 +562,8 @@ SELECT '/cu-da/decorative/cac-hinh-tuong-linh-hoa-ca-hoa-rong-cay-co-hoa-rong-0d
 WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/cac-hinh-tuong-linh-hoa-ca-hoa-rong-cay-co-hoa-rong-0df0c034-2.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/decorative/cac-hinh-tuong-linh-hoa-ca-hoa-rong-cay-co-hoa-rong-314403c9-1.jpeg', 'anh', 'Lá hoá long', 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Các hình tượng linh hóa: Cá hóa rồng, cây cỏ hóa rồng,…' AND h.name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/cac-hinh-tuong-linh-hoa-ca-hoa-rong-cay-co-hoa-rong-314403c9-1.jpeg');
+SELECT '/cu-da/decorative/cac-hinh-tuong-linh-hoa-ca-hoa-rong-cay-co-hoa-rong-314403c9-1.jpg', 'anh', 'Lá hoá long', 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Các hình tượng linh hóa: Cá hóa rồng, cây cỏ hóa rồng,…' AND h.name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/cac-hinh-tuong-linh-hoa-ca-hoa-rong-cay-co-hoa-rong-314403c9-1.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
 SELECT '/cu-da/decorative/cac-hinh-tuong-linh-hoa-ca-hoa-rong-cay-co-hoa-rong-a79dc4b8-1.jpg', 'anh', 'Vân hoá long', 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Các hình tượng linh hóa: Cá hóa rồng, cây cỏ hóa rồng,…' AND h.name = 'Nhà ông Vũ Ngọc Giao')
@@ -590,12 +590,12 @@ SELECT '/cu-da/decorative/luong-long-chau-nhat-0d6dbff7-1.jpg', 'anh', 'Lưỡng
 WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/luong-long-chau-nhat-0d6dbff7-1.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/decorative/may-48b1e215-1.jpeg', 'anh', NULL, 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Mây' AND h.name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/may-48b1e215-1.jpeg');
+SELECT '/cu-da/decorative/may-48b1e215-1.jpg', 'anh', NULL, 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Mây' AND h.name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/may-48b1e215-1.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/decorative/tien-df4c0e8e-1.jpeg', 'anh', NULL, 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Tiên' AND h.name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/tien-df4c0e8e-1.jpeg');
+SELECT '/cu-da/decorative/tien-df4c0e8e-1.jpg', 'anh', NULL, 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Tiên' AND h.name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/tien-df4c0e8e-1.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
 SELECT '/cu-da/decorative/tuong-mau-trong-den-phu-428e557d-1.jpg', 'anh', 'Tượng thờ mẫu', 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Tượng Mẫu (trong đền, phủ)' AND h.name = 'Chùa Cự Đà _ Linh Minh Tự')
@@ -606,8 +606,8 @@ SELECT '/cu-da/decorative/tuong-to-trong-chua-6997111b-1.jpg', 'anh', 'tượng 
 WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/tuong-to-trong-chua-6997111b-1.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/decorative/tuong-to-trong-chua-6997111b-2.jpeg', 'anh', 'tượng Tổ', 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Tượng Tổ (trong chùa)' AND h.name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/tuong-to-trong-chua-6997111b-2.jpeg');
+SELECT '/cu-da/decorative/tuong-to-trong-chua-6997111b-2.jpg', 'anh', 'tượng Tổ', 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Tượng Tổ (trong chùa)' AND h.name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/tuong-to-trong-chua-6997111b-2.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
 SELECT '/cu-da/decorative/tuong-phat-giao-trong-chua-d79dbbe9-1.jpg', 'anh', 'Tượng Phật', 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Tượng phật giáo (trong chùa)' AND h.name = 'Chùa Cự Đà _ Linh Minh Tự')
@@ -634,8 +634,8 @@ SELECT '/cu-da/decorative/de-tai-cay-coi-tre-truc-tung-f81767a1-2.jpg', 'anh', N
 WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/de-tai-cay-coi-tre-truc-tung-f81767a1-2.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
-SELECT '/cu-da/decorative/de-tai-hoa-qua-mau-don-hong-cuc-dao-luu-8231a62e-1.jpeg', 'anh', NULL, 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Đề tài hoa quả: Mẫu đơn, hồng, cúc, đào, lựu' AND h.name = 'Chùa Cự Đà _ Linh Minh Tự')
-WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/de-tai-hoa-qua-mau-don-hong-cuc-dao-luu-8231a62e-1.jpeg');
+SELECT '/cu-da/decorative/de-tai-hoa-qua-mau-don-hong-cuc-dao-luu-8231a62e-1.jpg', 'anh', NULL, 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Đề tài hoa quả: Mẫu đơn, hồng, cúc, đào, lựu' AND h.name = 'Chùa Cự Đà _ Linh Minh Tự')
+WHERE NOT EXISTS (SELECT 1 FROM media WHERE url = '/cu-da/decorative/de-tai-hoa-qua-mau-don-hong-cuc-dao-luu-8231a62e-1.jpg');
 
 INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
 SELECT '/cu-da/decorative/do-trang-tri-tho-tu-gan-tren-bo-khung-kien-truc-hoanh-phi-cuon-thu-cau-doi-cua-vong-thieu-chau-y-mon-0fe0485b-1.jpg', 'anh', 'Cuốn thư', 'decorative_art_items', (SELECT d.id FROM decorative_art_items d JOIN heritage_buildings h ON h.id = d.building_id WHERE d.subject_name = 'Đồ trang trí thờ tự gắn trên bộ khung kiến trúc (hoành phi, cuốn thư, câu đối, cửa võng, thiều châu, y môn,…)' AND h.name = 'Đình làng Cự Đà')

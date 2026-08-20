@@ -83,9 +83,13 @@ export async function downloadDriveFile(fileId: string): Promise<DownloadedFile 
   if (contentType.startsWith('text/html')) return null;
 
   const buffer = Buffer.from(await response.arrayBuffer());
-  const extension =
-    extensionFromContentDisposition(response.headers.get('content-disposition')) ??
-    extensionFromMagicBytes(buffer);
+  // Magic bytes (actual content) take priority over the Content-Disposition
+  // filename: some 360° photos come through with a vendor-specific extension
+  // (e.g. Insta360's ".insp") that isn't a real format — the bytes are a
+  // perfectly ordinary equirectangular JPEG underneath, but trusting the
+  // filename rejected them outright. Magic-byte sniffing doesn't cover video
+  // containers, so those still fall through to the filename extension.
+  const extension = extensionFromMagicBytes(buffer) ?? extensionFromContentDisposition(response.headers.get('content-disposition'));
   if (!extension) return null;
 
   if (HEIC_EXTENSIONS.has(extension)) {

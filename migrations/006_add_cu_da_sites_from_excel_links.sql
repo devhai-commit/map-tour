@@ -62,7 +62,7 @@ SELECT
   'Xã Bình Minh, Hà Nội (trước là xã Cự Khê, huyện Thanh Oai, Hà Nội)',
   'https://maps.app.goo.gl/PHsLhJtDrLmiW9i2A',
   'TK1',
-  ARRAY['nghề làm miến', 'nghề làm tương']
+  ARRAY['Nghề làm miến', 'Nghề làm tương']
 WHERE NOT EXISTS (SELECT 1 FROM villages WHERE slug = 'cu-da');
 
 -- ============================================================

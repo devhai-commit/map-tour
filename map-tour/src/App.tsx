@@ -16,6 +16,9 @@ const AdminImportPage = lazy(() =>
 const VillageIntroductionPage = lazy(() =>
   import('./pages/VillageIntroductionPage').then((m) => ({ default: m.VillageIntroductionPage })),
 );
+const ArchitectureHighlightsPage = lazy(() =>
+  import('./pages/ArchitectureHighlightsPage').then((m) => ({ default: m.ArchitectureHighlightsPage })),
+);
 
 export function App() {
   return (
@@ -28,6 +31,7 @@ export function App() {
             <Route path={APP_ROUTES.villageIntroduction} element={<VillageIntroductionPage />} />
             <Route path="map" element={<MapPage />} />
             <Route path="di-san" element={<HeritageListPage />} />
+            <Route path={APP_ROUTES.architecture} element={<ArchitectureHighlightsPage />} />
             <Route path="360" element={<Experience3DPage />} />
           </Route>
           <Route path="/admin/import" element={<AdminImportPage />} />

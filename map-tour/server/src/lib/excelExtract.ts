@@ -87,8 +87,16 @@ function isPlaceholderValue(value: string): boolean {
 // last non-empty value (like a merged/grouped Excel section) so a row whose
 // only new information is the data-column answer still inherits the
 // section/field label from the rows above it.
-export function extractLabeledRows(worksheet: Worksheet): LabeledRow[] {
-  const header = findDataColumn(worksheet);
+//
+// `forcedHeader` bypasses auto-detection entirely — needed for the rare
+// sheet whose header row has no "Dữ liệu"/"Nội dung" text at all, or (Lang
+// Cuu's building sheets) repeats "Nội dung" in BOTH the label and data
+// columns, which defeats findDataColumn's single-fallback assumption.
+export function extractLabeledRows(
+  worksheet: Worksheet,
+  forcedHeader?: { headerRow: number; dataCol: number },
+): LabeledRow[] {
+  const header = forcedHeader ?? findDataColumn(worksheet);
   if (!header) return [];
   const { headerRow, dataCol } = header;
   const carry: string[] = new Array(dataCol).fill('');

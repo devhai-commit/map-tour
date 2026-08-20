@@ -77,6 +77,27 @@ export interface VillageCraftProduct {
   experienceDuration: string | null;
 }
 
+export interface VillageArchitectureHighlight {
+  id: string;
+  name: string;
+  function: string | null;
+  heritageRank: string | null;
+  heritageRankYear: number | null;
+  builtPeriod: string | null;
+  overallStructureDescription: string | null;
+  culturalHistoricalValue: string | null;
+  landAreaM2: number | null;
+  floorAreaM2: number | null;
+  roofMaterial: string | null;
+  roofColor: string | null;
+  structureMaterial: string | null;
+  cover?: SitePanorama;
+  /** All flat photos for this building (includes `cover`, if present, as its first entry). */
+  photos: Array<SitePanorama & { caption?: string | null }>;
+  /** 360° equirectangular photo shown in the panorama viewer, if this building has one. */
+  panorama?: SitePanorama;
+}
+
 export interface VillageDetails {
   id: string;
   slug: string;
@@ -106,6 +127,7 @@ export interface VillageDetails {
   sites: TourSite[];
   gallery: Array<SitePanorama & { alt: string }>;
   videos: VillageVideo[];
+  architectureHighlights: VillageArchitectureHighlight[];
   statistics: {
     siteCount: number;
     pointCount: number;

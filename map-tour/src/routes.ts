@@ -5,6 +5,7 @@ export const APP_ROUTES = {
   villageIntroduction: 'gioi-thieu',
   map: 'map',
   heritage: 'di-san',
+  architecture: 'kien-truc',
   panorama: '360',
 } as const;
 
@@ -18,4 +19,5 @@ export const villageIntroductionPath = (villageSlug: string) =>
   villagePath(villageSlug, APP_ROUTES.villageIntroduction);
 export const villageMapPath = (villageSlug: string) => villagePath(villageSlug, APP_ROUTES.map);
 export const villageHeritagePath = (villageSlug: string) => villagePath(villageSlug, APP_ROUTES.heritage);
+export const villageArchitecturePath = (villageSlug: string) => villagePath(villageSlug, APP_ROUTES.architecture);
 export const villagePanoramaPath = (villageSlug: string) => villagePath(villageSlug, APP_ROUTES.panorama);

@@ -20,7 +20,7 @@ import { slugifyVietnamese } from '../src/lib/slugify.js';
 import { driveFileId, downloadDriveFile } from './lib/drivePhoto.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const XLSX_PATH = path.resolve(__dirname, '../../../Làng Cự Đà.xlsx');
+const XLSX_PATH = path.resolve(__dirname, '../../../Cự Đà.xlsx');
 const PUBLIC_DIR = path.resolve(__dirname, '../../public/cu-da');
 const VILLAGE_NAME = 'Cự Đà';
 
@@ -37,6 +37,16 @@ interface PhotoTask {
   driveUrl: string;
   caption: string | null;
   setCoverIfUnset: boolean;
+  isPanorama: boolean;
+}
+
+// A photo is 360° only when its OWN label/caption says so ("Ảnh 360", "ảnh
+// 360 nhà chính", ...) — checking the row's full instructional text instead
+// (column 6 repeats boilerplate survey guidance mentioning "360" on every row
+// of the "Ảnh các góc chính"/"Ảnh trong nhà" sections) produces false
+// positives on ordinary corner/interior photos that never mention 360.
+function isPanoramaLabel(...labels: string[]): boolean {
+  return labels.some((label) => /360/.test(label));
 }
 
 function cellPlainText(cell: ExcelJS.Cell): string {
@@ -134,6 +144,7 @@ async function collectSheet2Tasks(
       driveUrl,
       caption: entry.caption ?? meaningfulCaption(cellPlainText(cell)),
       setCoverIfUnset: entry.ownerType === 'sites',
+      isPanorama: false,
     });
   }
   return tasks;
@@ -177,7 +188,8 @@ async function collectBuildingTasks(
     const fileId = driveFileId(driveUrl);
     if (!fileId || seenFileIds.has(fileId)) continue;
     seenFileIds.add(fileId);
-    const ownText = meaningfulCaption(cellPlainText(dataCell));
+    const rawOwnText = cellPlainText(dataCell);
+    const ownText = meaningfulCaption(rawOwnText);
     const caption =
       [carryLabel || null, ownText && ownText !== carryLabel ? ownText : null].filter(Boolean).join(' — ') || null;
     tasks.push({
@@ -187,6 +199,7 @@ async function collectBuildingTasks(
       driveUrl,
       caption,
       setCoverIfUnset: false,
+      isPanorama: isPanoramaLabel(carryLabel, rawOwnText),
     });
   }
   return { tempId, buildingName, tasks };
@@ -253,6 +266,7 @@ async function collectDecorativeTasks(
       driveUrl,
       caption: meaningfulCaption(cellPlainText(dataCell)),
       setCoverIfUnset: false,
+      isPanorama: false,
     });
   }
   return tasks;
@@ -300,6 +314,7 @@ async function collectCraftTasks(
       driveUrl,
       caption: meaningfulCaption(cellPlainText(row.getCell(4))),
       setCoverIfUnset: false,
+      isPanorama: false,
     });
   }
   return tasks;
@@ -317,8 +332,14 @@ async function resolveSiteId(client: PoolClient, name: string): Promise<string |
   const result = await client.query<{ id: string }>('SELECT id FROM sites WHERE name = $1', [name]);
   return result.rows[0]?.id ?? null;
 }
+// Case-insensitive: the source workbook's "Tên" cell for one building
+// ("nhà ông Mão") no longer matches the DB's stored casing ("Nhà ông Mão")
+// after the workbook was re-exported/replaced — surveyor-entered proper nouns
+// aren't reliable enough to require exact casing here.
 async function resolveBuildingId(client: PoolClient, name: string): Promise<string | null> {
-  const result = await client.query<{ id: string }>('SELECT id FROM heritage_buildings WHERE name = $1', [name]);
+  const result = await client.query<{ id: string }>('SELECT id FROM heritage_buildings WHERE lower(name) = lower($1)', [
+    name,
+  ]);
   return result.rows[0]?.id ?? null;
 }
 async function resolveCraftProductId(client: PoolClient, name: string): Promise<string | null> {
@@ -393,11 +414,13 @@ async function processTask(
     await fs.mkdir(path.dirname(absolutePath), { recursive: true });
     await fs.writeFile(absolutePath, downloaded.buffer);
 
+    const kind = task.isPanorama && downloaded.kind === 'anh' ? 'panorama' : downloaded.kind;
+
     if (!DRY_RUN) {
       const inserted = await client.query<{ id: string }>(
         `INSERT INTO media (url, kind, caption, owner_entity_type, owner_entity_id)
          VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-        [relativeUrl, downloaded.kind, task.caption, task.ownerType, task.ownerId],
+        [relativeUrl, kind, task.caption, task.ownerType, task.ownerId],
       );
 
       if (task.setCoverIfUnset) {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   TraditionalCraft,
+  VillageArchitecture,
   VillageCallToAction,
   VillageCulturalStories,
   VillageCulture,
@@ -90,6 +91,7 @@ export function VillageIntroductionPage() {
       <TraditionalCraft village={village} />
       <VillageCulturalStories village={village} />
       <VillageLandscape village={village} />
+      <VillageArchitecture village={village} />
       <VillageCulture sites={village.sites} villageSlug={village.slug} />
       <VillageGallery village={village} />
       <VillageVideos village={village} />

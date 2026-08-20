@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { usePanorama } from '../context/PanoramaContext';
-import { villageHeritagePath, villageMapPath, villagePanoramaPath } from '../routes';
+import { villageArchitecturePath, villageHeritagePath, villageMapPath, villagePanoramaPath } from '../routes';
 import type { TourSite, VillageDetails } from '../types';
 import { SafeImage } from './SafeImage';
 import { TourMap } from './TourMap';
@@ -184,6 +184,69 @@ export function VillageLandscape({ village }: { village: VillageDetails }) {
 
 function historyLabel(type: VillageDetails['history'][number]['type']) {
   return { lich_su: 'Lịch sử', su_kien: 'Sự kiện', phong_tuc: 'Phong tục', truyen_thuyet: 'Truyền thuyết' }[type];
+}
+
+function architectureExcerpt(highlight: VillageDetails['architectureHighlights'][number]): string | null {
+  const text = highlight.culturalHistoricalValue ?? highlight.overallStructureDescription;
+  if (!text) return null;
+  return text.length > 160 ? `${text.slice(0, 160).trimEnd()}…` : text;
+}
+
+// Some source rows carry a full sentence in "built period" instead of a short
+// date/era (e.g. "Không ai còn nhớ rõ - thời điểm trùng tu lần đầu tiên..."),
+// which breaks the compact tag/badge UI — only show it there when it reads
+// like an actual period label; the full sentence still surfaces on the
+// architecture detail page (see ArchitectureHighlightsPage.tsx).
+function isTagLength(value: string | null): value is string {
+  return Boolean(value) && value!.length <= 24;
+}
+
+export function VillageArchitecture({ village }: { village: VillageDetails }) {
+  const { architectureHighlights } = village;
+  if (architectureHighlights.length === 0) return null;
+
+  return (
+    <section className="village-section" aria-labelledby="village-architecture-title">
+      <div className="village-section__heading village-section__heading--center">
+        <span>Công trình còn lưu dấu</span>
+        <h2 id="village-architecture-title">Kiến trúc độc đáo</h2>
+      </div>
+      <div className="village-architecture-grid">
+        {architectureHighlights.map((highlight) => (
+          <Link
+            key={highlight.id}
+            className="village-architecture-card"
+            to={villageArchitecturePath(village.slug)}
+          >
+            <div className="village-architecture-card__media">
+              {highlight.cover ? (
+                <SafeImage src={highlight.cover.url} alt={highlight.name} className="village-architecture-card__image" />
+              ) : (
+                <div className="village-architecture-card__placeholder" aria-hidden="true">{highlight.name.charAt(0)}</div>
+              )}
+              {highlight.panorama && <span className="village-architecture-card__badge-360">360°</span>}
+            </div>
+            <div className="village-architecture-card__body">
+              {(isTagLength(highlight.builtPeriod) || highlight.heritageRank) && (
+                <span>
+                  {[isTagLength(highlight.builtPeriod) ? highlight.builtPeriod : null, highlight.heritageRank]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </span>
+              )}
+              <h3>{highlight.name}</h3>
+              {architectureExcerpt(highlight) && <p>{architectureExcerpt(highlight)}</p>}
+            </div>
+          </Link>
+        ))}
+      </div>
+      <div className="village-architecture__cta">
+        <Link className="village-button village-button--gold" to={villageArchitecturePath(village.slug)}>
+          Khám phá kiến trúc độc đáo →
+        </Link>
+      </div>
+    </section>
+  );
 }
 
 export function VillageCulture({ sites, villageSlug }: { sites: TourSite[]; villageSlug: string }) {
