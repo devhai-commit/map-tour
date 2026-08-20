@@ -118,15 +118,19 @@ export async function findVillageDetailsBySlug(slug: string) {
             v.main_occupations, v.natural_features, v.site_selection_history,
             v.morphology_description, morphology.url AS morphology_image_url,
             morphology.attribution AS morphology_image_attribution,
-            (
-              SELECT m.url FROM sites s
-              JOIN media m ON m.id = s.cover_media_id
-              WHERE s.village_id = v.id AND s.cover_media_id IS NOT NULL AND m.kind = 'anh'
-              ORDER BY s.created_at
-              LIMIT 1
+            COALESCE(
+              cover.url,
+              (
+                SELECT m.url FROM sites s
+                JOIN media m ON m.id = s.cover_media_id
+                WHERE s.village_id = v.id AND s.cover_media_id IS NOT NULL AND m.kind = 'anh'
+                ORDER BY s.created_at
+                LIMIT 1
+              )
             ) AS cover_url
        FROM villages v
        LEFT JOIN media morphology ON morphology.id = v.morphology_diagram_media_id
+       LEFT JOIN media cover ON cover.id = v.cover_media_id AND cover.kind = 'anh'
       WHERE v.slug = $1
       LIMIT 1`,
     [slug],

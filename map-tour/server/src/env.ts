@@ -27,4 +27,8 @@ export const env = {
   // Shared-secret gate for /api/admin/* (Excel data import) — unset disables
   // those routes entirely rather than leaving them open by default.
   adminImportKey: process.env.ADMIN_IMPORT_KEY,
+  // Where admin-uploaded files (village cover images) land on disk. Defaults
+  // next to the server so `npm run dev` works with zero config; production
+  // should mount a persistent volume here (see compose.production.yml).
+  uploadsDir: process.env.UPLOADS_DIR ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../uploads'),
 };
