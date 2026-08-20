@@ -16,7 +16,7 @@ const VILLAGE_LIST_QUERY = `
   SELECT v.id, v.slug, v.name, v.admin_location, v.main_occupations, v.founded_period, (
     SELECT m.url FROM sites s
     JOIN media m ON m.id = s.cover_media_id
-    WHERE s.village_id = v.id AND s.cover_media_id IS NOT NULL
+    WHERE s.village_id = v.id AND s.cover_media_id IS NOT NULL AND m.kind = 'anh'
     ORDER BY s.created_at
     LIMIT 1
   ) AS cover_url

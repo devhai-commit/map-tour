@@ -42,7 +42,7 @@ const SITES_QUERY = `
   FROM sites s
   JOIN villages v ON v.id = s.village_id
   LEFT JOIN media m ON m.id = s.panorama_media_id
-  LEFT JOIN media cover ON cover.id = s.cover_media_id
+  LEFT JOIN media cover ON cover.id = s.cover_media_id AND cover.kind = 'anh'
   WHERE v.slug = $1
   ORDER BY s.created_at
 `;

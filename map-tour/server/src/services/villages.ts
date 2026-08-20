@@ -121,7 +121,7 @@ export async function findVillageDetailsBySlug(slug: string) {
             (
               SELECT m.url FROM sites s
               JOIN media m ON m.id = s.cover_media_id
-              WHERE s.village_id = v.id AND s.cover_media_id IS NOT NULL
+              WHERE s.village_id = v.id AND s.cover_media_id IS NOT NULL AND m.kind = 'anh'
               ORDER BY s.created_at
               LIMIT 1
             ) AS cover_url
@@ -143,7 +143,7 @@ export async function findVillageDetailsBySlug(slug: string) {
          FROM sites s
          JOIN villages v ON v.id = s.village_id
          LEFT JOIN media panorama ON panorama.id = s.panorama_media_id
-         LEFT JOIN media cover ON cover.id = s.cover_media_id
+         LEFT JOIN media cover ON cover.id = s.cover_media_id AND cover.kind = 'anh'
         WHERE s.village_id = $1
         ORDER BY s.created_at, s.name`,
       [village.id],

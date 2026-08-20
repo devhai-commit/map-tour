@@ -216,7 +216,7 @@ async function collectSheet2Tasks(
       driveUrl,
       caption: meaningfulCaption(cellPlainText(dataCell)),
       setCoverIfUnset: true,
-      isPanorama: false,
+      isPanorama: isPanoramaLabel(cellPlainText(dataCell)),
     });
   }
   return tasks;
@@ -401,7 +401,7 @@ async function processTask(
          VALUES ($1, $2, $3, $4, $5) RETURNING id`,
         [relativeUrl, kind, task.caption, task.ownerType, task.ownerId],
       );
-      if (task.setCoverIfUnset) {
+      if (task.setCoverIfUnset && kind === 'anh') {
         await client.query('UPDATE sites SET cover_media_id = $1 WHERE id = $2 AND cover_media_id IS NULL', [
           inserted.rows[0].id,
           task.ownerId,
